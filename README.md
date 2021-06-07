@@ -2,14 +2,14 @@
 <img align="right" src="https://github.com/cuvent/react-native-vision-camera/blob/main/docs/static/img/frame-processors.gif?raw=true">
 </div>
 
-# vision-camera-image-labeler
+# vision-camera-resize-plugin
 
 A [VisionCamera](https://github.com/cuvent/react-native-vision-camera) Frame Processor Plugin to label images using [**MLKit Vision** Image Labeling](https://developers.google.com/ml-kit/vision/image-labeling).
 
 ## Installation
 
 ```sh
-npm install vision-camera-image-labeler
+npm install vision-camera-resize-plugin
 cd ios && pod install
 ```
 
@@ -33,7 +33,7 @@ module.exports = {
 ## Usage
 
 ```js
-import { labelImage } from "vision-camera-image-labeler";
+import { labelImage } from "vision-camera-resize-plugin";
 
 // ...
 

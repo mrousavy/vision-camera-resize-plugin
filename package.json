@@ -1,5 +1,5 @@
 {
-  "name": "vision-camera-image-labeler",
+  "name": "vision-camera-resize-plugin",
   "version": "0.1.1",
   "description": "VisionCamera Frame Processor Plugin to label images using MLKit Vision",
   "main": "lib/commonjs/index",
@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "vision-camera-image-labeler.podspec",
+    "vision-camera-resize-plugin.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!ios/build",
@@ -36,13 +36,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/mrousavy/vision-camera-image-labeler",
+  "repository": "https://github.com/mrousavy/vision-camera-resize-plugin",
   "author": "Marc Rousavy <marcrousavy@hotmail.com> (https://github.com/mrousavy)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mrousavy/vision-camera-image-labeler/issues"
+    "url": "https://github.com/mrousavy/vision-camera-resize-plugin/issues"
   },
-  "homepage": "https://github.com/mrousavy/vision-camera-image-labeler#readme",
+  "homepage": "https://github.com/mrousavy/vision-camera-resize-plugin#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

@@ -1,6 +1,6 @@
-rootProject.name = 'VisionCameraImageLabelerExample'
+rootProject.name = 'VisionCameraResizePluginExample'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 
-include ':visioncameraimagelabeler'
-project(':visioncameraimagelabeler').projectDir = new File(rootProject.projectDir, '../../android')
+include ':visioncameraResizePlugin'
+project(':visioncameraResizePlugin').projectDir = new File(rootProject.projectDir, '../../android')

@@ -1,6 +1,6 @@
 {
-  "name": "vision-camera-image-labeler-example",
-  "description": "Example app for vision-camera-image-labeler",
+  "name": "vision-camera-resize-plugin-example",
+  "description": "Example app for vision-camera-resize-plugin",
   "version": "0.0.1",
   "private": true,
   "scripts": {

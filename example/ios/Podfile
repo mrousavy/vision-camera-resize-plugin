@@ -3,10 +3,10 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '11.0'
 
-target 'VisionCameraImageLabelerExample' do
+target 'VisionCameraResizePluginExample' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
-  pod 'vision-camera-image-labeler', :path => '../..'
+  pod 'vision-camera-resize-plugin', :path => '../..'
 end

@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 
-		5E555C0D2413F4C50049A1A2 /* VisionCameraImageLabeler.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* VisionCameraImageLabeler.m */; };
+		5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */; };
 
 /* End PBXBuildFile section */
 
@@ -25,9 +25,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		134814201AA4EA6300B7C361 /* libVisionCameraImageLabeler.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVisionCameraImageLabeler.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		134814201AA4EA6300B7C361 /* libVisionCameraResizePlugin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVisionCameraResizePlugin.a; sourceTree = BUILT_PRODUCTS_DIR; };
 
-		B3E7B5891CC2AC0600A0062D /* VisionCameraImageLabeler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VisionCameraImageLabeler.m; sourceTree = "<group>"; };
+		B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VisionCameraResizePlugin.m; sourceTree = "<group>"; };
 
 /* End PBXFileReference section */
 
@@ -45,7 +45,7 @@
 		134814211AA4EA7D00B7C361 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				134814201AA4EA6300B7C361 /* libVisionCameraImageLabeler.a */,
+				134814201AA4EA6300B7C361 /* libVisionCameraResizePlugin.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -54,7 +54,7 @@
 			isa = PBXGroup;
 			children = (
 
-				B3E7B5891CC2AC0600A0062D /* VisionCameraImageLabeler.m */,
+				B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */,
 
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
@@ -63,9 +63,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		58B511DA1A9E6C8500147676 /* VisionCameraImageLabeler */ = {
+		58B511DA1A9E6C8500147676 /* VisionCameraResizePlugin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "VisionCameraImageLabeler" */;
+			buildConfigurationList = 58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "VisionCameraResizePlugin" */;
 			buildPhases = (
 				58B511D71A9E6C8500147676 /* Sources */,
 				58B511D81A9E6C8500147676 /* Frameworks */,
@@ -75,9 +75,9 @@
 			);
 			dependencies = (
 			);
-			name = VisionCameraImageLabeler;
+			name = VisionCameraResizePlugin;
 			productName = RCTDataManager;
-			productReference = 134814201AA4EA6300B7C361 /* libVisionCameraImageLabeler.a */;
+			productReference = 134814201AA4EA6300B7C361 /* libVisionCameraResizePlugin.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -94,7 +94,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 58B511D61A9E6C8500147676 /* Build configuration list for PBXProject "VisionCameraImageLabeler" */;
+			buildConfigurationList = 58B511D61A9E6C8500147676 /* Build configuration list for PBXProject "VisionCameraResizePlugin" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -107,7 +107,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				58B511DA1A9E6C8500147676 /* VisionCameraImageLabeler */,
+				58B511DA1A9E6C8500147676 /* VisionCameraResizePlugin */,
 			);
 		};
 /* End PBXProject section */
@@ -118,7 +118,7 @@
 			buildActionMask = 2147483647;
 			files = (
 
-				B3E7B58A1CC2AC0600A0062D /* VisionCameraImageLabeler.m in Sources */,
+				B3E7B58A1CC2AC0600A0062D /* VisionCameraResizePlugin.m in Sources */,
 
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -230,7 +230,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = VisionCameraImageLabeler;
+				PRODUCT_NAME = VisionCameraResizePlugin;
 				SKIP_INSTALL = YES;
 
 			};
@@ -247,7 +247,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = VisionCameraImageLabeler;
+				PRODUCT_NAME = VisionCameraResizePlugin;
 				SKIP_INSTALL = YES;
 
 			};
@@ -256,7 +256,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		58B511D61A9E6C8500147676 /* Build configuration list for PBXProject "VisionCameraImageLabeler" */ = {
+		58B511D61A9E6C8500147676 /* Build configuration list for PBXProject "VisionCameraResizePlugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				58B511ED1A9E6C8500147676 /* Debug */,
@@ -265,7 +265,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "VisionCameraImageLabeler" */ = {
+		58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "VisionCameraResizePlugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				58B511F01A9E6C8500147676 /* Debug */,

@@ -1,5 +1,5 @@
 //
-//  VisionCameraImageLabeler.m
+//  VisionCameraResizePlugin.m
 //  VisionCameraExample
 //
 //  Created by Marc Rousavy on 06.05.21.
@@ -17,17 +17,17 @@
 
 @interface QRCodeFrameProcessorPluginObjC : NSObject
 
-+ (MLKImageLabeler*) labeler;
++ (MLKResizePlugin*) labeler;
 
 @end
 
 @implementation QRCodeFrameProcessorPluginObjC
 
-+ (MLKImageLabeler*) labeler {
-  static MLKImageLabeler* labeler = nil;
++ (MLKResizePlugin*) labeler {
+  static MLKResizePlugin* labeler = nil;
   if (labeler == nil) {
-    MLKImageLabelerOptions* options = [[MLKImageLabelerOptions alloc] init];
-    labeler = [MLKImageLabeler imageLabelerWithOptions:options];
+    MLKResizePluginOptions* options = [[MLKResizePluginOptions alloc] init];
+    labeler = [MLKResizePlugin ResizePluginWithOptions:options];
   }
   return labeler;
 }

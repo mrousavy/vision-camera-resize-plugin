@@ -1,4 +1,4 @@
-package com.example.visioncameraimagelabeler;
+package com.example.visioncameraResizePlugin;
 
 import android.app.Application;
 import com.facebook.react.ReactApplication;

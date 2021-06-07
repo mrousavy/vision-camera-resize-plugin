@@ -1,13 +1,13 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import VisionCameraImageLabeler from 'vision-camera-image-labeler';
+import VisionCameraResizePlugin from 'vision-camera-resize-plugin';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    VisionCameraImageLabeler.multiply(3, 7).then(setResult);
+    VisionCameraResizePlugin.multiply(3, 7).then(setResult);
   }, []);
 
   return (
