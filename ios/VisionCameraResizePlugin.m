@@ -8,10 +8,6 @@
 #import <VisionCamera/FrameProcessorPlugin.h>
 @import Foundation;
 @import AVFoundation;
-@import MLKitVision;
-@import MLKit;
-@import MLKitImageLabeling;
-@import MLKitImageLabelingCommon;
 
 // Example for an Objective-C Frame Processor plugin
 

@@ -369,14 +369,10 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-VisionCameraResizePluginExample/Pods-VisionCameraResizePluginExample-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/MLKitImageLabeling/MLKitImageLabelingResources.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/MLKitObjectDetectionCommon/MLKitObjectDetectionCommonResources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MLKitImageLabelingResources.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MLKitObjectDetectionCommonResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;

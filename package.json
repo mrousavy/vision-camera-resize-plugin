@@ -1,7 +1,7 @@
 {
   "name": "vision-camera-resize-plugin",
   "version": "0.1.1",
-  "description": "VisionCamera Frame Processor Plugin to label images using MLKit Vision",
+  "description": "VisionCamera Frame Processor Plugin to resize frames",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
