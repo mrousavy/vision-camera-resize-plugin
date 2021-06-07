@@ -1,10 +1,8 @@
-<div align="right">
-<img align="right" src="https://github.com/cuvent/react-native-vision-camera/blob/main/docs/static/img/frame-processors.gif?raw=true">
-</div>
-
 # vision-camera-resize-plugin
 
-A [VisionCamera](https://github.com/cuvent/react-native-vision-camera) Frame Processor Plugin to label images using [**MLKit Vision** Image Labeling](https://developers.google.com/ml-kit/vision/image-labeling).
+A [VisionCamera](https://github.com/cuvent/react-native-vision-camera) Frame Processor Plugin for fast buffer resizing.
+
+By resizing buffers to a smaller resolution, you can achieve much faster frame processor executions than by running AI on a full-sized (4k) buffer.
 
 ## Installation
 
@@ -21,7 +19,7 @@ module.exports = {
     [
       'react-native-reanimated/plugin',
       {
-        globals: ['__labelImage'],
+        globals: ['__resize'],
       },
     ],
 
@@ -33,13 +31,16 @@ module.exports = {
 ## Usage
 
 ```js
-import { labelImage } from "vision-camera-resize-plugin";
+import { resize } from "vision-camera-resize-plugin";
 
 // ...
 
 const frameProcessor = useFrameProcessor((frame) => {
   'worklet';
-  const labels = labelImage(frame);
+  if (frame.width > 1920) {
+    frame = resize(frame, 1920, 1080)
+  }
+  // run AI on smaller buffer here
 }, []);
 ```
 
