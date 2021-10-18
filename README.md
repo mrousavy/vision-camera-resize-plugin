@@ -1,3 +1,5 @@
+# :warning: work in progress! :warning:
+
 # vision-camera-resize-plugin
 
 A [VisionCamera](https://github.com/cuvent/react-native-vision-camera) Frame Processor Plugin for fast buffer resizing.
