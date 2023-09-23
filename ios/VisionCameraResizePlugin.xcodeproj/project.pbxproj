@@ -10,6 +10,7 @@
 		5E46D8CD2428F78900513E24 /* vision-camera-resize-plugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E46D8CB2428F78900513E24 /* vision-camera-resize-plugin.cpp */; };
 		5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.mm */; };
 		B86913642ABED12300F253F5 /* FrameResizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = B86913622ABED12300F253F5 /* FrameResizer.mm */; };
+		B86913672ABED2A300F253F5 /* ResizePlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = B86913662ABED2A300F253F5 /* ResizePlugin.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,7 @@
 		B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VisionCameraResizePlugin.mm; sourceTree = "<group>"; };
 		B86913622ABED12300F253F5 /* FrameResizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FrameResizer.mm; sourceTree = "<group>"; };
 		B86913632ABED12300F253F5 /* FrameResizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FrameResizer.h; sourceTree = "<group>"; };
+		B86913662ABED2A300F253F5 /* ResizePlugin.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ResizePlugin.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				B86913662ABED2A300F253F5 /* ResizePlugin.mm */,
 				B86913632ABED12300F253F5 /* FrameResizer.h */,
 				B86913622ABED12300F253F5 /* FrameResizer.mm */,
 				5E46D8CB2428F78900513E24 /* vision-camera-resize-plugin.cpp */,
@@ -123,6 +126,7 @@
 			files = (
 				5E46D8CD2428F78900513E24 /* vision-camera-resize-plugin.cpp in Sources */,
 				B86913642ABED12300F253F5 /* FrameResizer.mm in Sources */,
+				B86913672ABED2A300F253F5 /* ResizePlugin.mm in Sources */,
 				5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
