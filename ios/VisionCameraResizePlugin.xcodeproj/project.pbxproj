@@ -7,9 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-
-		5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */; };
-
+		5E46D8CD2428F78900513E24 /* vision-camera-resize-plugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E46D8CB2428F78900513E24 /* vision-camera-resize-plugin.cpp */; };
+		5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,9 +25,9 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libVisionCameraResizePlugin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVisionCameraResizePlugin.a; sourceTree = BUILT_PRODUCTS_DIR; };
-
-		B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VisionCameraResizePlugin.m; sourceTree = "<group>"; };
-
+		5E46D8CB2428F78900513E24 /* vision-camera-resize-plugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vision-camera-resize-plugin.cpp; path = ../cpp/vision-camera-resize-plugin.cpp; sourceTree = "<group>"; };
+		5E46D8CC2428F78900513E24 /* vision-camera-resize-plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vision-camera-resize-plugin.h; path = ../cpp/vision-camera-resize-plugin.h; sourceTree = "<group>"; };
+		B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = VisionCameraResizePlugin.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,9 +52,9 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-
-				B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.m */,
-
+				5E46D8CB2428F78900513E24 /* vision-camera-resize-plugin.cpp */,
+				5E46D8CC2428F78900513E24 /* vision-camera-resize-plugin.h */,
+				B3E7B5891CC2AC0600A0062D /* VisionCameraResizePlugin.mm */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -117,9 +116,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-
-				B3E7B58A1CC2AC0600A0062D /* VisionCameraResizePlugin.m in Sources */,
-
+				5E46D8CD2428F78900513E24 /* vision-camera-resize-plugin.cpp in Sources */,
+				5E555C0D2413F4C50049A1A2 /* VisionCameraResizePlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,6 +152,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -204,6 +203,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -232,7 +232,6 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = VisionCameraResizePlugin;
 				SKIP_INSTALL = YES;
-
 			};
 			name = Debug;
 		};
@@ -249,7 +248,6 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = VisionCameraResizePlugin;
 				SKIP_INSTALL = YES;
-
 			};
 			name = Release;
 		};

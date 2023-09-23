@@ -1,13 +1,13 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import VisionCameraResizePlugin from 'vision-camera-resize-plugin';
+import { multiply } from 'vision-camera-resize-plugin';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    VisionCameraResizePlugin.multiply(3, 7).then(setResult);
+    multiply(3, 7).then(setResult);
   }, []);
 
   return (
