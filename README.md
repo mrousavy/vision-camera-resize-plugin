@@ -1,17 +1,17 @@
-# vision-camera-resize-plugin
+# react-native-vision-camera-resize-plugin
 
-A fast GPU accelerated VisionCamera Frame Processor Plugin to resize frames in less than 1ms
+A VisionCamera plugin to efficiently resize, crop and convert Frames
 
 ## Installation
 
 ```sh
-npm install vision-camera-resize-plugin
+npm install react-native-vision-camera-resize-plugin
 ```
 
 ## Usage
 
 ```js
-import { multiply } from 'vision-camera-resize-plugin';
+import { multiply } from 'react-native-vision-camera-resize-plugin';
 
 // ...
 

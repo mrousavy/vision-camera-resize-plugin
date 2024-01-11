@@ -1,5 +1,5 @@
 #ifdef __cplusplus
-#import "vision-camera-resize-plugin.h"
+#import "react-native-vision-camera-resize-plugin.h"
 #endif
 
 #ifdef RCT_NEW_ARCH_ENABLED

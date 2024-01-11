@@ -20,7 +20,7 @@ public class VisionCameraResizePluginModule extends VisionCameraResizePluginSpec
   }
 
   static {
-    System.loadLibrary("cpp");
+    System.loadLibrary("react-native-vision-camera-resize-plugin");
   }
 
   public static native double nativeMultiply(double a, double b);

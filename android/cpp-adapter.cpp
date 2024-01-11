@@ -1,5 +1,5 @@
 #include <jni.h>
-#include "vision-camera-resize-plugin.h"
+#include "react-native-vision-camera-resize-plugin.h"
 
 extern "C"
 JNIEXPORT jdouble JNICALL

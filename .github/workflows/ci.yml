@@ -45,7 +45,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build package
-        run: yarn prepack
+        run: yarn prepare
 
   build-android:
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
-          key: ${{ runner.os }}-turborepo-android-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-turborepo-android-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-turborepo-android-
 
@@ -116,7 +116,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
-          key: ${{ runner.os }}-turborepo-ios-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-turborepo-ios-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-turborepo-ios-
 

@@ -15,9 +15,6 @@ def isNewArchitectureEnabled() {
 
 apply plugin: "com.android.library"
 
-
-def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
-
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
 }
@@ -36,11 +33,7 @@ def supportsNamespace() {
   def minor = parsed[1].toInteger()
 
   // Namespace support was added in 7.3.0
-  if (major == 7 && minor >= 3) {
-    return true
-  }
-
-  return major >= 8
+  return (major == 7 && minor >= 3) || major >= 8
 }
 
 android {
@@ -61,18 +54,24 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
     externalNativeBuild {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
-        abiFilters "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
       }
     }
   }
+
   externalNativeBuild {
     cmake {
       path "CMakeLists.txt"
     }
   }
+
+  buildFeatures {
+    buildConfig true
+  }
+
   buildTypes {
     release {
       minifyEnabled false
