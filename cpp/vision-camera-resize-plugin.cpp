@@ -1,4 +1,4 @@
-#include "react-native-vision-camera-resize-plugin.h"
+#include "vision-camera-resize-plugin.h"
 
 namespace visioncameraresizeplugin {
 	double multiply(double a, double b) {

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-vision-camera-resize-plugin": ["./src/index"]
+      "vision-camera-resize-plugin": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
