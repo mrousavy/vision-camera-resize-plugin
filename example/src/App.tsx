@@ -1,18 +1,36 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'vision-camera-resize-plugin';
+import { StyleSheet, View } from 'react-native';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useFrameProcessor,
+} from 'react-native-vision-camera';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const permission = useCameraPermission();
+  const device = useCameraDevice('back');
 
   React.useEffect(() => {
-    multiply(3, 7).then(setResult);
+    permission.requestPermission();
+  }, [permission]);
+
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet';
+    console.log(frame.toString());
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      {permission.hasPermission && device != null && (
+        <Camera
+          device={device}
+          style={StyleSheet.absoluteFill}
+          isActive={true}
+          frameProcessor={frameProcessor}
+        />
+      )}
     </View>
   );
 }

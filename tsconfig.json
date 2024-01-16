@@ -24,7 +24,7 @@
     "strict": true,
     "target": "esnext"
   },
-  "files": [
+  "include": [
     "src"
   ],
   "exclude": [

@@ -25,7 +25,6 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace vision-camera-resize-plugin-example",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
@@ -77,10 +76,6 @@
     "react": "*",
     "react-native": "*"
   },
-  "workspaces": [
-    "example"
-  ],
-  "packageManager": "yarn@3.6.1",
   "engines": {
     "node": ">= 18.0.0"
   },
@@ -140,7 +135,7 @@
       [
         "typescript",
         {
-          "project": "tsconfig.build.json"
+          "project": "tsconfig.json"
         }
       ]
     ]
