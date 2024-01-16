@@ -19,34 +19,36 @@
 
 @implementation ResizePlugin {
   std::unique_ptr<FrameResizer> _frameResizer;
+  VisionCameraProxyHolder* _proxy;
 }
 
-- (instancetype) initWithOptions:(NSDictionary*)options; {
-  self = [super init];
-  NSNumber* width = (NSNumber*) options[@"targetWidth"];
-  NSNumber* height = (NSNumber*) options[@"targetHeight"];
-  NSAssert(width != nil && height != nil, @"targetWidth or targetHeight are required parameters!");
-  NSNumber* channelSize = (NSNumber*) options[@"channelSize"];
-  
-  _frameResizer = std::make_unique<FrameResizer>((size_t) width.intValue,
-                                                 (size_t) height.intValue,
-                                                 (size_t) channelSize.intValue);
+- (instancetype) initWithProxy:(VisionCameraProxyHolder*)proxy
+                   withOptions:(NSDictionary*)options {
+  if (self = [super initWithProxy:proxy withOptions:options]) {
+    _proxy = proxy;
+  }
   return self;
 }
 
 - (id)callback:(Frame*)frame withArguments:(NSDictionary*)arguments {
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   
+  NSNumber* width = arguments[@"width"];
+  NSNumber* height = arguments[@"height"];
+  if (width != nil && height != nil && width.intValue != frame.width && height.intValue != frame.height) {
+    // TODO: Resize
+  }
+  
+  NSString* format = arguments[@"format"];
+  if (format != nil) {
+    // TODO: Convert format
+  }
+  
   const vImage_Buffer& resizedFrame = _frameResizer->resizeFrame(pixelBuffer);
   // code goes here
   return @[];
 }
 
-+ (void) load {
-  [FrameProcessorPluginRegistry addFrameProcessorPlugin:@"detectFaces"
-                                        withInitializer:^FrameProcessorPlugin*(NSDictionary* options) {
-    return [[FaceDetectorFrameProcessorPlugin alloc] initWithOptions:options];
-  }];
-}
+VISION_EXPORT_FRAME_PROCESSOR(ResizePlugin, resize);
 
 @end
