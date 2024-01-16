@@ -22,7 +22,12 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "verbatimModuleSyntax": true
-  }
+    "target": "esnext"
+  },
+  "files": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
