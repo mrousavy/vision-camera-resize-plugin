@@ -19,6 +19,14 @@ export default function App() {
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     console.log(frame.toString());
+    const result = resize(frame, {
+      size: {
+        width: 100,
+        height: 100,
+      },
+      pixelFormat: 'rgb (8-bit)',
+    });
+    console.log(result.byteLength);
   }, []);
 
   return (
