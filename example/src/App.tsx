@@ -27,7 +27,8 @@ export default function App() {
       },
       pixelFormat: 'rgb (8-bit)',
     });
-    console.log(result.byteLength);
+    const array = new Uint8Array(result);
+    console.log(array.length);
   }, []);
 
   return (

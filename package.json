@@ -73,7 +73,9 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-vision-camera": ">=3.8.0",
+    "react-native-worklets-core": ">=0.2.4"
   },
   "engines": {
     "node": ">= 18.0.0"
