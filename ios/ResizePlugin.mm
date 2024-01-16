@@ -46,22 +46,22 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
-  if ([pixelFormat isEqualToString:@"rgb (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"rgb-888"]) {
     return RGB_8;
   }
-  if ([pixelFormat isEqualToString:@"rgba (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"rgba-8888"]) {
     return RGBA_8;
   }
-  if ([pixelFormat isEqualToString:@"argb (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"argb-8888"]) {
     return ARGB_8;
   }
-  if ([pixelFormat isEqualToString:@"bgra (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"bgra-8888"]) {
     return BGRA_8;
   }
-  if ([pixelFormat isEqualToString:@"bgr (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"bgr-888"]) {
     return BGR_8;
   }
-  if ([pixelFormat isEqualToString:@"abgr (8-bit)"]) {
+  if ([pixelFormat isEqualToString:@"abgr-8888"]) {
     return ABGR_8;
   }
   [NSException raise:@"Invalid PixelFormat" format:@"Invalid PixelFormat passed! (%@)", pixelFormat];
@@ -108,7 +108,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
              toRGB:(vImageARGBType)targetType
               into:(const vImage_Buffer*)destination {
   NSLog(@"Converting YUV Frame to ARGB_8...");
-  
+
   vImage_YpCbCrPixelRange range {
     .Yp_bias = 64,
     .CbCr_bias = 512,
@@ -128,7 +128,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
                                                                      sourcevImageFormat,
                                                                      targetType,
                                                                      kvImageNoFlags);
-  
+
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
@@ -146,7 +146,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   };
 
   vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY, &sourceCbCr, destination, &info, nil, 255, kvImageNoFlags);
-  
+
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 }
 
@@ -197,21 +197,21 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (void)convertFrame:(Frame*)frame
               toARGB:(const vImage_Buffer*)destination {
   NSLog(@"Converting BGRA_8 Frame to ARGB_8...");
-  
+
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
-  
+
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-  
+
   vImage_Buffer input {
     .data = CVPixelBufferGetBaseAddress(pixelBuffer),
     .width = frame.width,
     .height = frame.height,
     .rowBytes = frame.bytesPerRow
   };
-  
+
   uint8_t permuteMap[4] = { 3, 2, 1, 0 };
   vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
-  
+
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 }
 
@@ -223,9 +223,9 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
     NSLog(@"Skipping resize, buffer is already desired size (%zu x %zu)...", width, height);
     return *buffer;
   }
-  
+
   NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
-  
+
   size_t resizeArraySize = width * height * 4;
   if (_resizeArray == nil || _resizeArray.count != resizeArraySize) {
     NSLog(@"Allocating _resizeArray (size: %zu)...", resizeArraySize);
@@ -241,7 +241,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   };
   // TODO: Preallocate tempBuffer? How big?
   vImageScale_ARGB8888(buffer, &resizeDestination, nil, kvImageNoFlags);
-  
+
   return resizeDestination;
 }
 
@@ -258,7 +258,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   } else {
     NSLog(@"ResizePlugin: No custom target size supplied.");
   }
-  
+
   ConvertPixelFormat pixelFormat = BGRA_8;
   NSString* pixelFormatString = arguments[@"pixelFormat"];
   if (pixelFormatString != nil) {
@@ -269,7 +269,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   }
 
   FourCharCode sourceType = getFramePixelFormat(frame);
-  
+
   // 3. Prepare destination buffer (write into JS SharedArray)
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat);
   size_t arraySize = bytesPerPixel * targetWidth * targetHeight;
@@ -283,7 +283,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
     .height = targetHeight,
     .rowBytes = targetWidth * bytesPerPixel
   };
-  
+
   // 4. Prepare ARGB_8888 array (intermediate type)
   size_t argbSize = 4 * frame.width * frame.height;
   if (_argbArray == nil || _argbArray.count != argbSize) {
@@ -296,46 +296,46 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
     .height = frame.height,
     .rowBytes = frame.width * 4
   };
-  
+
   // 5. Do the actual conversions
   if (sourceType == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange || sourceType == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
     // Convert YUV (4:2:0) -> ARGB_8888 first, only then we can operate in RGB layouts
-    
+
     // 1. Convert YUV -> ARGB_8
     [self convertYUV:frame
                toRGB:kvImageARGB8888
                 into:&argbDestination];
-    
+
     // 2. Resize
     argbDestination = [self resizeARGB:&argbDestination toWidth:targetWidth toHeight:targetHeight];
-    
+
     if (pixelFormat == ARGB_8) {
       // User wanted ARGB_8888, perfect - we already got that!
       return _resizeArray;
     } else {
       // User wanted another format, convert between RGB layouts.
-      
+
       // 2. Convert ARGB_8 -> anything
       [self convertARGB:&argbDestination
                      to:pixelFormat
                    into:&destination];
-      
+
       return _destinationArray;
     }
   } else if (sourceType == kCVPixelFormatType_32BGRA) {
     // Frame is in BGRA_8.
-    
+
     // 1. Convert BGRA_8 -> ARGB_8
     [self convertFrame:frame toARGB:&argbDestination];
-    
+
     // 2. Resize buffer
     argbDestination = [self resizeARGB:&argbDestination toWidth:targetWidth toHeight:targetHeight];
-    
+
     // 3. Convert ARGB_8 -> anything
     [self convertARGB:&argbDestination
                    to:pixelFormat
                  into:&destination];
-    
+
     // 4. Return to JS
     return _destinationArray;
   } else {

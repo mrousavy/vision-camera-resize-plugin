@@ -21,12 +21,12 @@ interface Options {
     height: number;
   };
   pixelFormat?:
-    | 'rgb (8-bit)'
-    | 'rgba (8-bit)'
-    | 'argb (8-bit)'
-    | 'bgra (8-bit)'
-    | 'bgr (8-bit)'
-    | 'abgr (8-bit)';
+    | 'rgb-888'
+    | 'rgba-8888'
+    | 'argb-8888'
+    | 'bgra-8888'
+    | 'bgr-888'
+    | 'abgr-8888';
 }
 
 /**

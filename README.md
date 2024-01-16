@@ -26,7 +26,7 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 192,
       height: 192
     },
-    pixelFormat: 'rgb (8-bit)'
+    pixelFormat: 'rgb-888'
   })
   const array = new Uint8Array(resized)
 }, [])
@@ -47,7 +47,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgb (8-bit)</code></td>
+<td><code>rgb-888</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -55,7 +55,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgba (8-bit)</code></td>
+<td><code>rgba-8888</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -63,7 +63,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>argb (8-bit)</code></td>
+<td><code>argb-8888</code></td>
 <td>A</td>
 <td>R</td>
 <td>G</td>
@@ -71,7 +71,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgra (8-bit)</code></td>
+<td><code>bgra-8888</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -79,7 +79,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgr (8-bit)</code></td>
+<td><code>bgr-888</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -87,7 +87,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>abgr (8-bit)</code></td>
+<td><code>abgr-8888</code></td>
 <td>A</td>
 <td>B</td>
 <td>G</td>
@@ -116,7 +116,7 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 320,
       height: 320,
     },
-    pixelFormat: 'rgb (8-bit)'
+    pixelFormat: 'rgb-888'
   })
   const output = model.runSync([data])
 
@@ -136,7 +136,7 @@ const result = resize(frame, {
     width: 100,
     height: 100,
   },
-  pixelFormat: 'rgb (8-bit)',
+  pixelFormat: 'rgb-888',
 })
 const end = performance.now();
 

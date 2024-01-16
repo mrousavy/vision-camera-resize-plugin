@@ -28,7 +28,7 @@ export default function App() {
         width: 100,
         height: 100,
       },
-      pixelFormat: 'rgb (8-bit)',
+      pixelFormat: 'rgb-888',
     });
     const array = new Uint8Array(result);
 
