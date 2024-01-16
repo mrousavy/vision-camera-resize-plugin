@@ -27,11 +27,75 @@ function App() {
       },
       pixelFormat: 'rgb (8-bit)'
     })
+    const array = new Uint8Array(resized)
   }, [])
 
   return <Camera frameProcessor={frameProcessor} {...props} />
 }
 ```
+
+## Pixel Formats
+
+The resize plugin operates in RGB colorspace, and all values are in `uint8`.
+
+<table>
+<tr>
+<th>Name</th>
+<th><code>0</code></th>
+<th><code>1</code></th>
+<th><code>2</code></th>
+<th><code>3</code></th>
+</tr>
+
+<tr>
+<td><code>rgb (8-bit)</code></td>
+<td>R</td>
+<td>G</td>
+<td>B</td>
+<td>R</td>
+</tr>
+
+<tr>
+<td><code>rgba (8-bit)</code></td>
+<td>R</td>
+<td>G</td>
+<td>B</td>
+<td>A</td>
+</tr>
+
+<tr>
+<td><code>argb (8-bit)</code></td>
+<td>A</td>
+<td>R</td>
+<td>G</td>
+<td>B</td>
+</tr>
+
+<tr>
+<td><code>bgra (8-bit)</code></td>
+<td>B</td>
+<td>G</td>
+<td>R</td>
+<td>A</td>
+</tr>
+
+<tr>
+<td><code>bgr (8-bit)</code></td>
+<td>B</td>
+<td>G</td>
+<td>R</td>
+<td>B</td>
+</tr>
+
+<tr>
+<td><code>abgr (8-bit)</code></td>
+<td>A</td>
+<td>B</td>
+<td>G</td>
+<td>R</td>
+</tr>
+
+</table>
 
 ## react-native-fast-tflite
 
@@ -55,7 +119,7 @@ const frameProcessor = useFrameProcessor((frame) => {
     },
     pixelFormat: 'rgb (8-bit)'
   })
-  const output = model.runSync(data)
+  const output = model.runSync([data])
 
   const numDetections = output[0]
   console.log(`Detected ${numDetections} objects!`)

@@ -16,11 +16,11 @@ if (resizePlugin == null) {
 }
 
 interface Options {
-  size: {
+  size?: {
     width: number;
     height: number;
   };
-  pixelFormat:
+  pixelFormat?:
     | 'rgb (8-bit)'
     | 'rgba (8-bit)'
     | 'argb (8-bit)'
