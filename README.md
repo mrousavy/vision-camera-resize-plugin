@@ -157,6 +157,17 @@ And when running on 1080x1920 yuv Frames, I got the following results:
 
 This means the Frame Processor can run at up to ~160 FPS.
 
+## Adopting at scale
+
+<a href="https://github.com/sponsors/mrousavy">
+  <img align="right" width="160" alt="This library helped you? Consider sponsoring!" src=".github/funding-octocat.svg">
+</a>
+
+This library is provided _as is_, I work on it in my free time.
+
+If you're integrating vision-camera-resize-plugin in a production app, consider [funding this project](https://github.com/sponsors/mrousavy) and <a href="mailto:me@mrousavy.com?subject=Adopting vision-camera-resize-plugin at scale">contact me</a> to receive premium enterprise support, help with issues, prioritize bugfixes, request features, help at integrating vision-camera-resize-plugin and/or VisionCamera Frame Processors, and more.
+
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
