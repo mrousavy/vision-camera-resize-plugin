@@ -13,24 +13,23 @@ A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame P
 
 ## Usage
 
+Use the `resize` plugin within a Frame Processor:
+
 ```tsx
 import { resize } from 'vision-camera-resize-plugin';
 
-function App() {
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet'
+const frameProcessor = useFrameProcessor((frame) => {
+  'worklet'
 
-    const resized = resize(frame, {
-      size: {
-        width: 100,
-        height: 100
-      },
-      pixelFormat: 'rgb (8-bit)'
-    })
-    const array = new Uint8Array(resized)
-  }, [])
-
-  return <Camera frameProcessor={frameProcessor} {...props} />
+  const resized = resize(frame, {
+    size: {
+      width: 192,
+      height: 192
+    },
+    pixelFormat: 'rgb (8-bit)'
+  })
+  const array = new Uint8Array(resized)
+}, [])
 }
 ```
 
