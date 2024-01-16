@@ -20,6 +20,9 @@ export default function App() {
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     console.log(frame.toString());
+
+    const start = performance.now();
+
     const result = resize(frame, {
       size: {
         width: 100,
@@ -28,7 +31,14 @@ export default function App() {
       pixelFormat: 'rgb (8-bit)',
     });
     const array = new Uint8Array(result);
-    console.log(array.length);
+
+    const end = performance.now();
+
+    console.log(
+      `Resized ${frame.width}x${frame.height} into 100x100 frame (${
+        array.length
+      }) in ${(end - start).toFixed(2)}ms`
+    );
   }, []);
 
   return (

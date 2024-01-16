@@ -252,7 +252,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   
   ConvertPixelFormat pixelFormat = BGRA_8;
   NSString* pixelFormatString = arguments[@"pixelFormat"];
-  if (pixelFormatString == nil) {
+  if (pixelFormatString != nil) {
     pixelFormat = parsePixelFormat(pixelFormatString);
     NSLog(@"ResizePlugin: Using target format: %@", pixelFormatString);
   } else {
