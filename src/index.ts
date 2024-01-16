@@ -1,29 +1,33 @@
-import { NativeModules, Platform } from 'react-native';
+import { Frame, VisionCameraProxy } from 'react-native-vision-camera';
 
-const LINKING_ERROR =
-  `The package 'vision-camera-resize-plugin' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+const plugin = VisionCameraProxy.initFrameProcessorPlugin('resize');
 
-// @ts-expect-error
-const isTurboModuleEnabled = global.__turboModuleProxy != null;
+interface Options {
+  size: {
+    width: number;
+    height: number;
+  };
+  pixelFormat:
+    | 'yuv (4:2:0)'
+    | 'yuv (4:4:4)'
+    | 'yuv (4:2:2)'
+    | 'rgb'
+    | 'bgr'
+    | 'bgra'
+    | 'argb';
+}
 
-const VisionCameraResizePluginModule = isTurboModuleEnabled
-  ? require('./NativeVisionCameraResizePlugin').default
-  : NativeModules.VisionCameraResizePlugin;
-
-const VisionCameraResizePlugin = VisionCameraResizePluginModule
-  ? VisionCameraResizePluginModule
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
+/**
+ * Resizes the given Frame to the target width/height, as well as crop the Frame or convert it's pixelformat
+ * @param frame
+ */
+export function resize(frame: Frame, options: Options): ArrayBuffer {
+  'worklet';
+  if (plugin == null)
+    throw new Error(
+      'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return VisionCameraResizePlugin.multiply(a, b);
+  // @ts-expect-error
+  return plugin.call(frame, options);
 }
