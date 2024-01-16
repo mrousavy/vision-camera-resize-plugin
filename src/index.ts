@@ -17,7 +17,8 @@ interface Options {
 }
 
 /**
- * Resizes the given Frame to the target width/height.
+ * Resizes the given Frame to the target width/height and
+ * convert it to the given pixel format.
  */
 export function resize(frame: Frame, options: Options): ArrayBuffer {
   'worklet';

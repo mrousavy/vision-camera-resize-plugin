@@ -1,22 +1,97 @@
 # vision-camera-resize-plugin
 
-A VisionCamera Frame Processor Plugin for fast and efficient Frame resizing, cropping and pixelformat conversion
+A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame Processor Plugin for fast and efficient Frame resizing, cropping and pixel-format conversion using GPU-acceleration and CPU-vector based operations.
 
 ## Installation
 
-```sh
-npm install vision-camera-resize-plugin
-```
+1. Install react-native-vision-camera and make sure Frame Processors are enabled.
+2. Install vision-camera-resize-plugin:
+    ```sh
+    yarn add vision-camera-resize-plugin
+    cd ios && pod install
+    ```
 
 ## Usage
 
-```js
-import { multiply } from 'vision-camera-resize-plugin';
+```tsx
+import { resize } from 'vision-camera-resize-plugin';
 
-// ...
+function App() {
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet'
 
-const result = await multiply(3, 7);
+    const resized = resize(frame, {
+      size: {
+        width: 100,
+        height: 100
+      },
+      pixelFormat: 'rgb (8-bit)'
+    })
+  }, [])
+
+  return <Camera frameProcessor={frameProcessor} {...props} />
+}
 ```
+
+## react-native-fast-tflite
+
+The vision-camera-resize-plugin can be used together with [react-native-fast-tflite](https://github.com/mrousavy/react-native-fast-tflite) to prepare the input tensor data.
+
+For example, to use the [efficientdet](https://www.kaggle.com/models/tensorflow/efficientdet/frameworks/tfLite) TFLite model to detect objects inside a Frame, simply add the model to your app's bundle, set up VisionCamera and react-native-fast-tflite, and resize your Frames accordingly.
+
+From the model's description on the website, we understand that the model expects 320 x 320 x 3 buffers as input, where the format is uint8 rgb.
+
+```ts
+const objectDetection = useTensorflowModel(require('assets/efficientdet.tflite'))
+const model = objectDetection.state === "loaded" ? objectDetection.model : undefined
+
+const frameProcessor = useFrameProcessor((frame) => {
+  'worklet'
+
+  const data = resize(frame, {
+    size: {
+      width: 320,
+      height: 320,
+    },
+    pixelFormat: 'rgb (8-bit)'
+  })
+  const output = model.runSync(data)
+
+  const numDetections = output[0]
+  console.log(`Detected ${numDetections} objects!`)
+}, [model])
+```
+
+## Benchmarks
+
+I benchmarked vision-camera-resize-plugin on an iPhone 15 Pro, using the following code:
+
+```tsx
+const start = performance.now()
+const result = resize(frame, {
+  size: {
+    width: 100,
+    height: 100,
+  },
+  pixelFormat: 'rgb (8-bit)',
+})
+const end = performance.now();
+
+const diff = (end - start).toFixed(2)
+console.log(`Resize and conversion took ${diff}ms!`)
+```
+
+And when running on 1080x1920 yuv Frames, I got the following results:
+
+```
+ LOG  Resize and conversion took 6.48ms
+ LOG  Resize and conversion took 6.06ms
+ LOG  Resize and conversion took 5.89ms
+ LOG  Resize and conversion took 5.97ms
+ LOG  Resize and conversion took 6.98ms
+```
+
+This means the Frame Processor can run at up to ~160 FPS.
 
 ## Contributing
 
