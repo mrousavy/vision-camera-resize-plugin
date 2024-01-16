@@ -1,5 +1,10 @@
 {
   "extends": "../tsconfig",
+  "compilerOptions": {
+    "paths": {
+      "vision-camera-resize-plugin": ["../src/index"]
+    },
+  },
   "include": ["index.js", "src"],
   "exclude": ["node_modules"]
 }

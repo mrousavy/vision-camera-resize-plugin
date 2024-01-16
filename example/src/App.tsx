@@ -7,6 +7,7 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
+import { resize } from 'vision-camera-resize-plugin';
 
 export default function App() {
   const permission = useCameraPermission();
