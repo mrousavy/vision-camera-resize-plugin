@@ -29,8 +29,9 @@ const frameProcessor = useFrameProcessor((frame) => {
     pixelFormat: 'rgb-888'
   })
   const array = new Uint8Array(resized)
+
+  const firstPixel = [array[0], array[1], array[2]]
 }, [])
-}
 ```
 
 ## Pixel Formats
