@@ -1,6 +1,19 @@
+import { Platform } from 'react-native';
 import { Frame, VisionCameraProxy } from 'react-native-vision-camera';
 
 const resizePlugin = VisionCameraProxy.initFrameProcessorPlugin('resize');
+
+if (resizePlugin == null) {
+  if (Platform.OS === 'android') {
+    throw new Error(
+      'vision-camera-resize-plugin does not work on Android yet. Contact me through my agency if you want me to add Android support.'
+    );
+  } else {
+    throw new Error(
+      'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
+    );
+  }
+}
 
 interface Options {
   size: {
@@ -22,10 +35,6 @@ interface Options {
  */
 export function resize(frame: Frame, options: Options): ArrayBuffer {
   'worklet';
-  if (resizePlugin == null)
-    throw new Error(
-      'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
-    );
 
   // @ts-expect-error
   return resizePlugin.call(frame, options);
