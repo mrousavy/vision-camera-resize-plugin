@@ -52,14 +52,17 @@ By default, the example is configured to build with the old architecture. To run
 1. For Android, run:
 
    ```sh
-   ORG_GRADLE_PROJECT_newArchEnabled=true yarn example android
+   cd example
+   ORG_GRADLE_PROJECT_newArchEnabled=true yarn android
    ```
 
 2. For iOS, run:
 
    ```sh
-   RCT_NEW_ARCH_ENABLED=1 yarn pod-install example/ios
-   yarn example ios
+   cd example/ios
+   RCT_NEW_ARCH_ENABLED=1 pod install
+   cd ..
+   yarn ios
    ```
 
 If you are building for a different architecture than your previous build, make sure to remove the build folders first. You can run the following command to cleanup all build folders:
