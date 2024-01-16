@@ -107,6 +107,8 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (void)convertYUV:(Frame*)frame
              toRGB:(vImageARGBType)targetType
               into:(const vImage_Buffer*)destination {
+  NSLog(@"Converting YUV Frame to ARGB_8...");
+  
   vImage_YpCbCrPixelRange range {
     .Yp_bias = 64,
     .CbCr_bias = 512,
@@ -151,6 +153,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (void)convertARGB:(const vImage_Buffer*)buffer
                  to:(ConvertPixelFormat)destinationFormat
                into:(const vImage_Buffer*)destination {
+  NSLog(@"Converting ARGB_8 Frame to %zu...", destinationFormat);
   
   switch (destinationFormat) {
     case RGB_8: {
@@ -190,6 +193,8 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 
 - (void)convertFrame:(Frame*)frame
               toARGB:(const vImage_Buffer*)destination {
+  NSLog(@"Converting BGRA_8 Frame to ARGB_8...");
+  
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -210,8 +215,11 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (vImage_Buffer)resizeARGB:(const vImage_Buffer*)buffer
                     toWidth:(size_t)width
                    toHeight:(size_t)height {
+  NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
+  
   size_t resizeArraySize = width * height * 4;
   if (_resizeArray == nil || _resizeArray.count != resizeArraySize) {
+    NSLog(@"Allocating _resizeArray (size: %zu)...", resizeArraySize);
     _resizeArray = [[SharedArray alloc] initWithProxy:_proxy
                                                  type:Uint8Array
                                                  size:resizeArraySize];
@@ -237,12 +245,18 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   if (targetSize != nil) {
     targetWidth = ((NSNumber*) targetSize[@"width"]).intValue;
     targetHeight = ((NSNumber*) targetSize[@"height"]).intValue;
+    NSLog(@"ResizePlugin: Target size: %zu x %zu", targetWidth, targetHeight);
+  } else {
+    NSLog(@"ResizePlugin: No custom target size supplied.");
   }
   
   ConvertPixelFormat pixelFormat = BGRA_8;
   NSString* pixelFormatString = arguments[@"pixelFormat"];
   if (pixelFormatString == nil) {
     pixelFormat = parsePixelFormat(pixelFormatString);
+    NSLog(@"ResizePlugin: Using target format: %@", pixelFormatString);
+  } else {
+    NSLog(@"ResizePlugin: No custom target format supplied.");
   }
 
   FourCharCode sourceType = getFramePixelFormat(frame);
@@ -251,6 +265,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat);
   size_t arraySize = bytesPerPixel * frame.width * frame.height;
   if (_destinationArray == nil || _destinationArray.count != arraySize) {
+    NSLog(@"Allocating _destinationArray (size: %zu)...", arraySize);
     _destinationArray = [[SharedArray alloc] initWithProxy:_proxy type:Uint8Array size:arraySize];
   }
   vImage_Buffer destination {
@@ -263,6 +278,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   // 4. Prepare ARGB_8888 array (intermediate type)
   size_t argbSize = 4 * frame.width * frame.height;
   if (_argbArray == nil || _argbArray.count != argbSize) {
+    NSLog(@"Allocating _argbArray (size: %zu)...", argbSize);
     _argbArray = [[SharedArray alloc] initWithProxy:_proxy type:Uint8Array size:argbSize];
   }
   vImage_Buffer argbDestination {
