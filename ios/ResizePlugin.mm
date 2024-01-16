@@ -153,15 +153,15 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (void)convertARGB:(const vImage_Buffer*)buffer
                  to:(ConvertPixelFormat)destinationFormat
                into:(const vImage_Buffer*)destination {
-  NSLog(@"Converting ARGB_8 Frame to %zu...", destinationFormat);
-  
   switch (destinationFormat) {
     case RGB_8: {
+      NSLog(@"Converting ARGB_8 Frame to RGB_8...");
       uint8_t backgroundColor[3] { 0, 0, 0 };
       vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       break;
     }
     case BGR_8: {
+      NSLog(@"Converting ARGB_8 Frame to BGR_8...");
       uint8_t backgroundColor[3] { 0, 0, 0 };
       vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       uint8_t permuteMap[4] = { 2, 1, 0 };
@@ -174,16 +174,19 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
       break;
     }
     case RGBA_8: {
+      NSLog(@"Converting ARGB_8 Frame to RGBA_8...");
       uint8_t permuteMap[4] = { 3, 1, 2, 0 };
       vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case BGRA_8: {
+      NSLog(@"Converting ARGB_8 Frame to BGRA_8...");
       uint8_t permuteMap[4] = { 3, 2, 1, 0 };
       vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case ABGR_8: {
+      NSLog(@"Converting ARGB_8 Frame to ABGR_8...");
       uint8_t permuteMap[4] = { 0, 3, 2, 1 };
       vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
@@ -215,6 +218,12 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
 - (vImage_Buffer)resizeARGB:(const vImage_Buffer*)buffer
                     toWidth:(size_t)width
                    toHeight:(size_t)height {
+  if (buffer->width == width && buffer->height == height) {
+    // We are already in the target size.
+    NSLog(@"Skipping resize, buffer is already desired size (%zu x %zu)...", width, height);
+    return *buffer;
+  }
+  
   NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
   
   size_t resizeArraySize = width * height * 4;
