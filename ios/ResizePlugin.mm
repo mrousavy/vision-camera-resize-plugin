@@ -65,6 +65,7 @@ ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
     return ABGR_8;
   }
   [NSException raise:@"Invalid PixelFormat" format:@"Invalid PixelFormat passed! (%@)", pixelFormat];
+  return RGB_8;
 }
 
 size_t getBytesPerPixel(ConvertPixelFormat format) {
@@ -314,6 +315,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
     return _destinationArray;
   } else {
     [NSException raise:@"Invalid PixelFormat" format:@"Frame has invalid Pixel Format! Disable buffer compression and 10-bit HDR."];
+    return nil;
   }
 }
 
