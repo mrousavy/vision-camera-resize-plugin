@@ -263,7 +263,7 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   
   // 3. Prepare destination buffer (write into JS SharedArray)
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat);
-  size_t arraySize = bytesPerPixel * frame.width * frame.height;
+  size_t arraySize = bytesPerPixel * targetWidth * targetHeight;
   if (_destinationArray == nil || _destinationArray.count != arraySize) {
     NSLog(@"Allocating _destinationArray (size: %zu)...", arraySize);
     _destinationArray = [[SharedArray alloc] initWithProxy:_proxy type:Uint8Array size:arraySize];
