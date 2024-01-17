@@ -16,8 +16,6 @@ A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame P
 Use the `resize` plugin within a Frame Processor:
 
 ```tsx
-import { useResizePlugin } from 'vision-camera-resize-plugin';
-
 const { resize } = useResizePlugin()
 
 const frameProcessor = useFrameProcessor((frame) => {
@@ -118,6 +116,17 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 
 </table>
 
+### Performance
+
+If possible, use one of these two formats:
+
+- `argb-uint8`: Can be converted the fastest, but has an additional unused alpha channel.
+- `rgb-uint8`: Requires one more conversion step from `argb-uint8`, but uses 25% less memory due to the removed alpha channel.
+
+All other formats require additional conversion steps, and `float` models have additional memory overhead (up to 4x as big).
+
+When using TensorFlow Lite, try to convert your model to use `argb-uint8` or `rgb-uint8` as it's input type.
+
 ## react-native-fast-tflite
 
 The vision-camera-resize-plugin can be used together with [react-native-fast-tflite](https://github.com/mrousavy/react-native-fast-tflite) to prepare the input tensor data.
@@ -162,7 +171,7 @@ const result = resize(frame, {
   },
   pixelFormat: 'rgb-uint8',
 })
-const end = performance.now();
+const end = performance.now()
 
 const diff = (end - start).toFixed(2)
 console.log(`Resize and conversion took ${diff}ms!`)
