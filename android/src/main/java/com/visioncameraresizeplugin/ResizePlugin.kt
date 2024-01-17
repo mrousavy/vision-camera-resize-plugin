@@ -1,5 +1,6 @@
 package com.visioncameraresizeplugin
 
+import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.util.Log
 import com.mrousavy.camera.frameprocessor.Frame
@@ -16,6 +17,7 @@ import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toJ420Buffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toNv21Buffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toU420Buffer
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
@@ -123,6 +125,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         Log.i(TAG, "Converting to ARGB")
         resizeBuffer.convertTo(argbBuffer)
         Log.i(TAG, "Sending back to JS")
+
+        val colors = argbBuffer.asByteArray().map { it.toInt() }.toTypedArray()
+        val bitmap = Bitmap.createBitmap(colors.toIntArray(), targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
 
         return _argbArray
     }
