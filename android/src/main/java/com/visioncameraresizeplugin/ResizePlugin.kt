@@ -7,16 +7,25 @@ import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
 import io.github.crow_misia.libyuv.AbgrBuffer
+import io.github.crow_misia.libyuv.AbstractBuffer
 import io.github.crow_misia.libyuv.ArgbBuffer
+import io.github.crow_misia.libyuv.BgraBuffer
 import io.github.crow_misia.libyuv.FilterMode
 import io.github.crow_misia.libyuv.I420Buffer
 import io.github.crow_misia.libyuv.Plane
+import io.github.crow_misia.libyuv.Rgb24Buffer
+import io.github.crow_misia.libyuv.RgbaBuffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
+val AbstractBuffer.totalSize: Int
+    get() {
+        return planes.sumOf { it.buffer.limit() }
+    }
+
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
-    private var _resizeArray: SharedArray? = null
+    private var _resizeBuffer: I420Buffer? = null
     private var _destinationArray: SharedArray? = null
     companion object {
         private const val TAG = "ResizePlugin"
@@ -29,6 +38,14 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             override val rowStride: Int
                 get() = rowStride
         }
+    }
+
+    private fun getCachedResizeBuffer(width: Int, height: Int): I420Buffer {
+        if (_resizeBuffer == null || _resizeBuffer!!.width != width || _resizeBuffer!!.height != height) {
+            Log.i(TAG, "Allocating _resizeBuffer... (size: ${width}x${height})")
+            _resizeBuffer = I420Buffer.allocate(width, height)
+        }
+        return _resizeBuffer!!
     }
 
     override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any? {
@@ -63,18 +80,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             throw Error("Frame is not in yuv format! Set pixelFormat=\"yuv\" on the <Camera>. (Expected: YUV_420_888, Received: ${image.format})")
         }
 
-        Log.i(TAG, "Wrapping Frame in I420Buffer...")
         val buffer = image.toI420Buffer()
 
-        val totalBufferSize = buffer.planes.sumOf { it.buffer.remaining() }
-        val yuvBytesPerPixel = totalBufferSize.toDouble() / image.width / image.height
-        Log.i(TAG, "Wrapped Frame in I420Buffer! (size: $totalBufferSize at $yuvBytesPerPixel bytes per pixel)")
-        val resizeSize = (targetWidth * targetHeight * yuvBytesPerPixel).roundToInt()
-        if (_resizeArray == null || _resizeArray!!.byteBuffer.remaining() != resizeSize) {
-            Log.i(TAG, "Allocating _resizeArray... (size: $resizeSize)")
-            _resizeArray = SharedArray(proxy, SharedArray.Type.Uint8Array, resizeSize)
-        }
-        val resizeBuffer = I420Buffer.wrap(_resizeArray!!.byteBuffer, targetWidth, targetHeight)
+        val resizeBuffer = getCachedResizeBuffer(targetWidth, targetHeight)
 
         Log.i(TAG, "Resizing ${frame.width}x${frame.height} Frame to ${targetWidth}x${targetHeight}...")
         buffer.scale(resizeBuffer, FilterMode.BILINEAR)
@@ -82,17 +90,39 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         val argbSize = targetWidth * targetHeight * targetFormat.bytesPerPixel
         if (_destinationArray == null || _destinationArray!!.byteBuffer.remaining() != argbSize) {
             Log.i(TAG, "Allocating _argbArray... (size: $argbSize)")
-            _destinationArray = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
+            _destinationArray = SharedArray(proxy, argbSize)
         }
         _destinationArray!!.byteBuffer.rewind()
-        Log.i(TAG, "Wrapping in ARGB")
 
         val plane = wrapArrayInPlane(_destinationArray!!, targetWidth * targetFormat.bytesPerPixel)
-        val argbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
 
-        Log.i(TAG, "Converting to ARGB")
-        resizeBuffer.convertTo(argbBuffer)
-        Log.i(TAG, "Sending back to JS")
+        Log.i(TAG, "Converting to $targetFormat...")
+        when (targetFormat) {
+            RGBFormat.RGB_8 -> {
+                val argbBuffer = Rgb24Buffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(argbBuffer)
+            }
+            RGBFormat.BGR_8 -> {
+                throw Error("bgr-uint8 is not yet implemented!")
+            }
+            RGBFormat.ARGB_8 -> {
+                val argbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(argbBuffer)
+            }
+            RGBFormat.RGBA_8 -> {
+                val argbBuffer = RgbaBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(argbBuffer)
+            }
+            RGBFormat.BGRA_8 -> {
+                val argbBuffer = BgraBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(argbBuffer)
+            }
+            RGBFormat.ABGR_8 -> {
+                val argbBuffer = AbgrBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(argbBuffer)
+            }
+        }
+        Log.i(TAG, "Resized & Converted!")
 
         return _destinationArray
     }
