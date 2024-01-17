@@ -99,27 +99,27 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         Log.i(TAG, "Converting to $targetFormat...")
         when (targetFormat) {
             RGBFormat.RGB_8 -> {
-                val argbBuffer = Rgb24Buffer.wrap(plane, targetWidth, targetHeight)
-                resizeBuffer.convertTo(argbBuffer)
+                val rgbBuffer = Rgb24Buffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(rgbBuffer)
             }
             RGBFormat.BGR_8 -> {
                 throw Error("bgr-uint8 is not yet implemented!")
             }
             RGBFormat.ARGB_8 -> {
-                val argbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
-                resizeBuffer.convertTo(argbBuffer)
+                val rgbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(rgbBuffer)
             }
             RGBFormat.RGBA_8 -> {
-                val argbBuffer = RgbaBuffer.wrap(plane, targetWidth, targetHeight)
-                resizeBuffer.convertTo(argbBuffer)
+                val rgbBuffer = RgbaBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(rgbBuffer)
             }
             RGBFormat.BGRA_8 -> {
-                val argbBuffer = BgraBuffer.wrap(plane, targetWidth, targetHeight)
-                resizeBuffer.convertTo(argbBuffer)
+                val rgbBuffer = BgraBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(rgbBuffer)
             }
             RGBFormat.ABGR_8 -> {
-                val argbBuffer = AbgrBuffer.wrap(plane, targetWidth, targetHeight)
-                resizeBuffer.convertTo(argbBuffer)
+                val rgbBuffer = AbgrBuffer.wrap(plane, targetWidth, targetHeight)
+                resizeBuffer.convertTo(rgbBuffer)
             }
         }
         Log.i(TAG, "Resized & Converted!")
