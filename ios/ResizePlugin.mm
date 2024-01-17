@@ -271,6 +271,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     size_t tempBufferSize = vImageScale_ARGB8888(buffer, &resizeDestination, nil, kvImageGetTempBufferSize);
     if (tempBufferSize > 0) {
       NSLog(@"Allocating _tempResizeBuffer (size: %zu)...", tempBufferSize);
+      free(_tempResizeBuffer);
       _tempResizeBuffer = malloc(tempBufferSize);
     } else {
       NSLog(@"Cannot allocate _tempResizeBuffer, size is unknown!");
