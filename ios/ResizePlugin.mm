@@ -255,7 +255,6 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   if (_resizeArray == nil || _resizeArray.count != resizeArraySize) {
     NSLog(@"Allocating _resizeArray (size: %zu)...", resizeArraySize);
     _resizeArray = [[SharedArray alloc] initWithProxy:_proxy
-                                                 type:Uint8Array
                                                  size:resizeArraySize];
     // reset _tempResizeBuffer as well as that depends on the size
     free(_tempResizeBuffer);
@@ -315,7 +314,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   size_t arraySize = bytesPerPixel * targetWidth * targetHeight;
   if (_destinationArray == nil || _destinationArray.count != arraySize) {
     NSLog(@"Allocating _destinationArray (size: %zu)...", arraySize);
-    _destinationArray = [[SharedArray alloc] initWithProxy:_proxy type:Uint8Array size:arraySize];
+    _destinationArray = [[SharedArray alloc] initWithProxy:_proxy size:arraySize];
   }
   vImage_Buffer destination {
     .data = _destinationArray.data,
@@ -328,7 +327,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   size_t argbSize = 4 * frame.width * frame.height;
   if (_argbArray == nil || _argbArray.count != argbSize) {
     NSLog(@"Allocating _argbArray (size: %zu)...", argbSize);
-    _argbArray = [[SharedArray alloc] initWithProxy:_proxy type:Uint8Array size:argbSize];
+    _argbArray = [[SharedArray alloc] initWithProxy:_proxy size:argbSize];
   }
   vImage_Buffer argbDestination {
     .data = _argbArray.data,
