@@ -53,9 +53,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
 
     private fun wrapArrayInPlane(array: SharedArray, rowStride: Int): Plane {
-        val plane = object: Plane {
+        return object: Plane {
             override val buffer: ByteBuffer
-                get() = _argbArray!!.byteBuffer
+                get() = array.byteBuffer
             override val rowStride: Int
                 get() = rowStride
         }
