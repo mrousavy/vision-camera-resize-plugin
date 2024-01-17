@@ -53,15 +53,9 @@ export function createResizePlugin(): ResizePlugin {
   const resizePlugin = VisionCameraProxy.initFrameProcessorPlugin('resize');
 
   if (resizePlugin == null) {
-    if (Platform.OS === 'android') {
-      throw new Error(
-        'vision-camera-resize-plugin does not work on Android yet. Contact me through my agency if you want me to add Android support.'
-      );
-    } else {
-      throw new Error(
-        'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
-      );
-    }
+    throw new Error(
+      'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
+    );
   }
 
   return {

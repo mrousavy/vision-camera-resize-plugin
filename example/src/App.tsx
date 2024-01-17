@@ -50,6 +50,7 @@ export default function App() {
           device={device}
           style={StyleSheet.absoluteFill}
           isActive={true}
+          pixelFormat="yuv"
           frameProcessor={frameProcessor}
         />
       )}
