@@ -1,6 +1,5 @@
 package com.visioncameraresizeplugin
 
-import android.media.Image
 import android.util.Log
 import com.mrousavy.camera.frameprocessor.Frame
 import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
@@ -8,10 +7,7 @@ import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
 import io.github.crow_misia.libyuv.ArgbBuffer
 import io.github.crow_misia.libyuv.I420Buffer
-import io.github.crow_misia.libyuv.Plane
-import io.github.crow_misia.libyuv.Yuv24Buffer
 import io.github.crow_misia.libyuv.asPlane
-import java.nio.ByteBuffer
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     private var _argbBuffer: SharedArray? = null
@@ -62,12 +58,15 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         val v = image.planes[2].asPlane()
         val buffer = I420Buffer.wrap(y, u, v, image.width, image.height)
 
-        val size = image.width * image.height * 4
-        if (_argbBuffer == null || _argbBuffer!!.byteBuffer.remaining() != size) {
-            Log.i(TAG, "Allocating _argbBuffer... (size: $size)")
-            _argbBuffer = SharedArray()
+        val argbSize = image.width * image.height * 4
+        if (_argbBuffer == null || _argbBuffer!!.byteBuffer.remaining() != argbSize) {
+            Log.i(TAG, "Allocating _argbBuffer... (size: $argbSize)")
+            _argbBuffer = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
         }
-        val argbBuffer = ArgbBuffer.wrap()
+        val argbBuffer = ArgbBuffer.wrap(_argbBuffer!!.byteBuffer, image.width, image.height)
+        buffer.convertTo(argbBuffer)
+
+        return _argbBuffer
     }
 
 }
