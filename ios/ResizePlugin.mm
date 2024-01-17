@@ -47,9 +47,8 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
 }
 
 - (void)dealloc {
-  if (_tempResizeBuffer != nil) {
-    free(_tempResizeBuffer);
-  }
+  NSLog(@"Deallocating ResizePlugin...");
+  free(_tempResizeBuffer);
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
@@ -247,8 +246,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
                                                  type:Uint8Array
                                                  size:resizeArraySize];
     // reset _tempResizeBuffer as well as that depends on the size
-    if (_tempResizeBuffer != nil)
-      free(_tempResizeBuffer);
+    free(_tempResizeBuffer);
     _tempResizeBuffer = nil;
   }
   vImage_Buffer resizeDestination {
