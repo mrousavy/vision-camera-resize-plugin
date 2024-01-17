@@ -6,18 +6,32 @@ import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
 import io.github.crow_misia.libyuv.ArgbBuffer
+import io.github.crow_misia.libyuv.FilterMode
 import io.github.crow_misia.libyuv.I420Buffer
 import io.github.crow_misia.libyuv.asPlane
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
-    private var _argbBuffer: SharedArray? = null
+    private var _resizeArray: SharedArray? = null
+    private var _argbArray: SharedArray? = null
     companion object {
         private const val TAG = "ResizePlugin"
     }
 
     enum class RGBFormat {
         RGB_8,
-        ARGB_8;
+        BGR_8,
+        ARGB_8,
+        RGBA_8,
+        BGRA_8,
+        ABGR_8;
+
+        val bytesPerPixel: Int
+            get() {
+                return when (this) {
+                    RGB_8, BGR_8 -> 3
+                    ARGB_8, RGBA_8, BGRA_8, ABGR_8 -> 4
+                }
+            }
 
         companion object {
             fun fromString(string: String): RGBFormat {
@@ -62,15 +76,27 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         val v = image.planes[2].asPlane()
         val buffer = I420Buffer.wrap(y, u, v, image.width, image.height)
 
-        val argbSize = image.width * image.height * 4
-        if (_argbBuffer == null || _argbBuffer!!.byteBuffer.remaining() != argbSize) {
-            Log.i(TAG, "Allocating _argbBuffer... (size: $argbSize)")
-            _argbBuffer = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
+        val totalBufferSize = y.buffer.remaining() + u.buffer.remaining() + v.buffer.remaining()
+        val yuvBytesPerPixel = totalBufferSize.toDouble() / image.width / image.height
+        val resizeSize = (targetWidth * targetHeight * yuvBytesPerPixel).toInt()
+        if (_resizeArray == null || _resizeArray!!.byteBuffer.remaining() != resizeSize) {
+            Log.i(TAG, "Allocating _resizeArray... (size: $resizeSize)")
+            _resizeArray = SharedArray(proxy, SharedArray.Type.Uint8Array, resizeSize)
         }
-        val argbBuffer = ArgbBuffer.wrap(_argbBuffer!!.byteBuffer, image.width, image.height)
-        buffer.convertTo(argbBuffer)
+        val resizeBuffer = I420Buffer.wrap(_resizeArray!!.byteBuffer, targetWidth, targetHeight)
 
-        return _argbBuffer
+        Log.i(TAG, "Resizing ${frame.width}x${frame.height} Frame to ${targetWidth}x${targetHeight}...")
+        buffer.scale(resizeBuffer, FilterMode.BILINEAR)
+
+        val argbSize = image.width * image.height * targetFormat.bytesPerPixel
+        if (_argbArray == null || _argbArray!!.byteBuffer.remaining() != argbSize) {
+            Log.i(TAG, "Allocating _argbArray... (size: $argbSize)")
+            _argbArray = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
+        }
+        val argbBuffer = ArgbBuffer.wrap(_argbArray!!.byteBuffer, image.width, image.height)
+        resizeBuffer.convertTo(argbBuffer)
+
+        return _argbArray
     }
 
 }
