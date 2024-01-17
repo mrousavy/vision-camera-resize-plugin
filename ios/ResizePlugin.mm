@@ -127,17 +127,18 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
              toRGB:(vImageARGBType)targetType
               into:(const vImage_Buffer*)destination {
   NSLog(@"Converting YUV Frame to ARGB_8...");
+  vImage_Error error = kvImageNoError;
 
   vImage_YpCbCrPixelRange range = getRange(getFramePixelFormat(frame));
 
   vImage_YpCbCrToARGB info;
   vImageYpCbCrType sourcevImageFormat = getFramevImageFormat(frame);
-  vImage_Error error = vImageConvert_YpCbCrToARGB_GenerateConversion(kvImage_YpCbCrToARGBMatrix_ITU_R_601_4,
-                                                                     &range,
-                                                                     &info,
-                                                                     sourcevImageFormat,
-                                                                     targetType,
-                                                                     kvImageNoFlags);
+  error = vImageConvert_YpCbCrToARGB_GenerateConversion(kvImage_YpCbCrToARGBMatrix_ITU_R_601_4,
+                                                        &range,
+                                                        &info,
+                                                        sourcevImageFormat,
+                                                        targetType,
+                                                        kvImageNoFlags);
   if (error != kvImageNoError) {
     [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to create YUV -> RGB conversion! Error: %zu", error];
   }
@@ -158,7 +159,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
   };
 
-  vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY, &sourceCbCr, destination, &info, nil, 255, kvImageNoFlags);
+  error = vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY, &sourceCbCr, destination, &info, nil, 255, kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to run YUV -> RGB conversion! Error: %zu", error];
+  }
 
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 }
@@ -166,20 +170,22 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 - (void)convertARGB:(const vImage_Buffer*)buffer
                  to:(ConvertPixelFormat)destinationFormat
                into:(const vImage_Buffer*)destination {
+  vImage_Error error = kvImageNoError;
+
   switch (destinationFormat) {
     case RGB_8: {
       NSLog(@"Converting ARGB_8 Frame to RGB_8...");
       uint8_t backgroundColor[3] { 0, 0, 0 };
-      vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
+      error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       break;
     }
     case BGR_8: {
       NSLog(@"Converting ARGB_8 Frame to BGR_8...");
       uint8_t backgroundColor[3] { 0, 0, 0 };
-      vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
+      error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       uint8_t permuteMap[4] = { 2, 1, 0 };
       // TODO: Can I use the existing in-memory buffer or do I need a separate one?
-      vImagePermuteChannels_RGB888(destination, destination, permuteMap, kvImageNoFlags);
+      error = vImagePermuteChannels_RGB888(destination, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case ARGB_8: {
@@ -189,21 +195,25 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     case RGBA_8: {
       NSLog(@"Converting ARGB_8 Frame to RGBA_8...");
       uint8_t permuteMap[4] = { 3, 1, 2, 0 };
-      vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
+      error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case BGRA_8: {
       NSLog(@"Converting ARGB_8 Frame to BGRA_8...");
       uint8_t permuteMap[4] = { 3, 2, 1, 0 };
-      vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
+      error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case ABGR_8: {
       NSLog(@"Converting ARGB_8 Frame to ABGR_8...");
       uint8_t permuteMap[4] = { 0, 3, 2, 1 };
-      vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
+      error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
+  }
+
+  if (error != kvImageNoError) {
+    [NSException raise:@"RGB Conversion Error" format:@"Failed to convert RGB layout! Error: %zu", error];
   }
 }
 
@@ -223,7 +233,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   };
 
   uint8_t permuteMap[4] = { 3, 2, 1, 0 };
-  vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
+  vImage_Error error = vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [NSException raise:@"RGB Conversion Error" format:@"Failed to convert Frame to ARGB! Error: %zu", error];
+  }
 
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 }
@@ -264,8 +277,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       NSLog(@"Cannot allocate _tempResizeBuffer, size is unknown!");
     }
   }
-  
-  vImageScale_ARGB8888(buffer, &resizeDestination, _tempResizeBuffer, kvImageNoFlags);
+
+  vImage_Error error = vImageScale_ARGB8888(buffer, &resizeDestination, _tempResizeBuffer, kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [NSException raise:@"Resize Error" format:@"Failed to resize ARGB buffer! Error: %zu", error];
+  }
 
   return resizeDestination;
 }
