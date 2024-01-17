@@ -41,9 +41,13 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
         val targetSize = params["size"] as? Map<*, *>
         if (targetSize != null) {
-            targetWidth = targetSize["width"] as Int
-            targetHeight = targetSize["height"] as Int
-            Log.i(TAG, "Target size: $targetWidth x $targetHeight")
+            val targetWidthDouble = targetSize["width"] as? Double
+            val targetHeightDouble = targetSize["height"] as? Double
+            if (targetWidthDouble != null && targetHeightDouble != null) {
+                targetWidth = targetWidthDouble.toInt()
+                targetHeight = targetHeightDouble.toInt()
+                Log.i(TAG, "Target size: $targetWidth x $targetHeight")
+            }
         }
 
         val formatString = params["pixelFormat"] as? String
