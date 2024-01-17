@@ -104,21 +104,25 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
   }
 }
 
+vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
+  // Values are from vImage_Types.h::vImage_YpCbCrPixelRange
+  switch (pixelFormat) {
+    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+      return (vImage_YpCbCrPixelRange){ 0, 128, 255, 255, 255, 1, 255, 0 };
+    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+      return (vImage_YpCbCrPixelRange){ 16, 128, 235, 240, 235, 16, 240, 16 };
+    default:
+      [NSException raise:@"Unknown YUV pixel format!" format:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"];
+      return (vImage_YpCbCrPixelRange) { };
+  }
+}
+
 - (void)convertYUV:(Frame*)frame
              toRGB:(vImageARGBType)targetType
               into:(const vImage_Buffer*)destination {
   NSLog(@"Converting YUV Frame to ARGB_8...");
 
-  vImage_YpCbCrPixelRange range {
-    .Yp_bias = 64,
-    .CbCr_bias = 512,
-    .YpRangeMax = 940,
-    .CbCrRangeMax = 960,
-    .YpMax = 255,
-    .YpMin = 0,
-    .CbCrMax = 255,
-    .CbCrMin = 0
-  };
+  vImage_YpCbCrPixelRange range = getRange(getFramePixelFormat(frame));
 
   vImage_YpCbCrToARGB info;
   vImageYpCbCrType sourcevImageFormat = getFramevImageFormat(frame);
@@ -128,6 +132,9 @@ vImageYpCbCrType getFramevImageFormat(Frame* frame) {
                                                                      sourcevImageFormat,
                                                                      targetType,
                                                                      kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to create YUV -> RGB conversion! Error: %zu", error];
+  }
 
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
