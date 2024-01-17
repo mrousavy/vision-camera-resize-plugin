@@ -1116,7 +1116,7 @@ PODS:
     - React-logger (= 0.73.2)
     - React-perflogger (= 0.73.2)
   - SocketRocket (0.6.1)
-  - vision-camera-resize-plugin (0.1.0):
+  - vision-camera-resize-plugin (0.2.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1388,7 +1388,7 @@ SPEC CHECKSUMS:
   React-utils: f5bc61e7ea3325c0732ae2d755f4441940163b85
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  vision-camera-resize-plugin: 8ca40e17be460ce3f924b977d98990a6dbd5be49
+  vision-camera-resize-plugin: 2785f88b5df98d0c9cbd17fce03cff8aee8c25bb
   VisionCamera: 8e3454abf4baa43a2b9ad9cfc9723d1cc89d9eb6
   Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 

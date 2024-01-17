@@ -7,7 +7,7 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
-import { resize } from 'vision-camera-resize-plugin';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
 
 export default function App() {
   const permission = useCameraPermission();
@@ -17,13 +17,15 @@ export default function App() {
     permission.requestPermission();
   }, [permission]);
 
+  const plugin = useResizePlugin();
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     console.log(frame.toString());
 
     const start = performance.now();
 
-    const result = resize(frame, {
+    const result = plugin.resize(frame, {
       size: {
         width: 100,
         height: 100,
