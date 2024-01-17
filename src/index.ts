@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-import { Platform } from 'react-native';
 import { Frame, VisionCameraProxy } from 'react-native-vision-camera';
 
 interface Options {
