@@ -171,17 +171,16 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
                  to:(ConvertPixelFormat)destinationFormat
                into:(const vImage_Buffer*)destination {
   vImage_Error error = kvImageNoError;
+  Pixel_8888 backgroundColor { 0, 0, 0, 255 };
 
   switch (destinationFormat) {
     case RGB_8: {
       NSLog(@"Converting ARGB_8 Frame to RGB_8...");
-      uint8_t backgroundColor[3] { 0, 0, 0 };
       error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       break;
     }
     case BGR_8: {
       NSLog(@"Converting ARGB_8 Frame to BGR_8...");
-      uint8_t backgroundColor[3] { 0, 0, 0 };
       error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       uint8_t permuteMap[4] = { 2, 1, 0 };
       // TODO: Can I use the existing in-memory buffer or do I need a separate one?
