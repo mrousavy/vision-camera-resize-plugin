@@ -34,6 +34,7 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
   SharedArray* _rgbArray;
   // Resizing
   SharedArray* _resizeArray;
+  void* _tempResizeBuffer;
   VisionCameraProxyHolder* _proxy;
 }
 
@@ -43,6 +44,12 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
     _proxy = proxy;
   }
   return self;
+}
+
+- (void)dealloc {
+  if (_tempResizeBuffer != nil) {
+    free(_tempResizeBuffer);
+  }
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
@@ -239,6 +246,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     _resizeArray = [[SharedArray alloc] initWithProxy:_proxy
                                                  type:Uint8Array
                                                  size:resizeArraySize];
+    // reset _tempResizeBuffer as well as that depends on the size
+    if (_tempResizeBuffer != nil)
+      free(_tempResizeBuffer);
+    _tempResizeBuffer = nil;
   }
   vImage_Buffer resizeDestination {
     .data = _resizeArray.data,
@@ -246,8 +257,17 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     .height = height,
     .rowBytes = width * 4
   };
-  // TODO: Preallocate tempBuffer? How big?
-  vImageScale_ARGB8888(buffer, &resizeDestination, nil, kvImageNoFlags);
+  if (_tempResizeBuffer == nil) {
+    size_t tempBufferSize = vImageScale_ARGB8888(buffer, &resizeDestination, nil, kvImageGetTempBufferSize);
+    if (tempBufferSize > 0) {
+      NSLog(@"Allocating _tempResizeBuffer (size: %zu)...", tempBufferSize);
+      _tempResizeBuffer = malloc(tempBufferSize);
+    } else {
+      NSLog(@"Cannot allocate _tempResizeBuffer, size is unknown!");
+    }
+  }
+  
+  vImageScale_ARGB8888(buffer, &resizeDestination, _tempResizeBuffer, kvImageNoFlags);
 
   return resizeDestination;
 }
