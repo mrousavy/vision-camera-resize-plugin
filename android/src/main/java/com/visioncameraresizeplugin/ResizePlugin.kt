@@ -1,57 +1,25 @@
 package com.visioncameraresizeplugin
 
-import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.util.Log
 import com.mrousavy.camera.frameprocessor.Frame
 import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
+import io.github.crow_misia.libyuv.AbgrBuffer
 import io.github.crow_misia.libyuv.ArgbBuffer
 import io.github.crow_misia.libyuv.FilterMode
 import io.github.crow_misia.libyuv.I420Buffer
 import io.github.crow_misia.libyuv.Plane
-import io.github.crow_misia.libyuv.asPlane
-import io.github.crow_misia.libyuv.ext.ImageExt.toH420Buffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
-import io.github.crow_misia.libyuv.ext.ImageExt.toJ420Buffer
-import io.github.crow_misia.libyuv.ext.ImageExt.toNv21Buffer
-import io.github.crow_misia.libyuv.ext.ImageExt.toU420Buffer
-import java.io.FileOutputStream
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     private var _resizeArray: SharedArray? = null
-    private var _argbArray: SharedArray? = null
+    private var _destinationArray: SharedArray? = null
     companion object {
         private const val TAG = "ResizePlugin"
-    }
-
-    enum class RGBFormat {
-        RGB_8,
-        BGR_8,
-        ARGB_8,
-        RGBA_8,
-        BGRA_8,
-        ABGR_8;
-
-        val bytesPerPixel: Int
-            get() {
-                return when (this) {
-                    RGB_8, BGR_8 -> 3
-                    ARGB_8, RGBA_8, BGRA_8, ABGR_8 -> 4
-                }
-            }
-
-        companion object {
-            fun fromString(string: String): RGBFormat {
-                return when (string) {
-                    "rgb-uint8" -> RGB_8
-                    "argb-uint8" -> ARGB_8
-                    else -> throw Error("Invalid PixelFormat! ($string)")
-                }
-            }
-        }
     }
 
     private fun wrapArrayInPlane(array: SharedArray, rowStride: Int): Plane {
@@ -95,13 +63,13 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             throw Error("Frame is not in yuv format! Set pixelFormat=\"yuv\" on the <Camera>. (Expected: YUV_420_888, Received: ${image.format})")
         }
 
-        Log.i(TAG, "Converting Frame to I420Buffer...")
+        Log.i(TAG, "Wrapping Frame in I420Buffer...")
         val buffer = image.toI420Buffer()
 
         val totalBufferSize = buffer.planes.sumOf { it.buffer.remaining() }
         val yuvBytesPerPixel = totalBufferSize.toDouble() / image.width / image.height
-        Log.i(TAG, "Created I420Buffer (size: $totalBufferSize at $yuvBytesPerPixel bytes per pixel)")
-        val resizeSize = (targetWidth * targetHeight * yuvBytesPerPixel).toInt()
+        Log.i(TAG, "Wrapped Frame in I420Buffer! (size: $totalBufferSize at $yuvBytesPerPixel bytes per pixel)")
+        val resizeSize = (targetWidth * targetHeight * yuvBytesPerPixel).roundToInt()
         if (_resizeArray == null || _resizeArray!!.byteBuffer.remaining() != resizeSize) {
             Log.i(TAG, "Allocating _resizeArray... (size: $resizeSize)")
             _resizeArray = SharedArray(proxy, SharedArray.Type.Uint8Array, resizeSize)
@@ -112,24 +80,52 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         buffer.scale(resizeBuffer, FilterMode.BILINEAR)
 
         val argbSize = targetWidth * targetHeight * targetFormat.bytesPerPixel
-        if (_argbArray == null || _argbArray!!.byteBuffer.remaining() != argbSize) {
+        if (_destinationArray == null || _destinationArray!!.byteBuffer.remaining() != argbSize) {
             Log.i(TAG, "Allocating _argbArray... (size: $argbSize)")
-            _argbArray = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
+            _destinationArray = SharedArray(proxy, SharedArray.Type.Uint8Array, argbSize)
         }
-        _argbArray!!.byteBuffer.rewind()
+        _destinationArray!!.byteBuffer.rewind()
         Log.i(TAG, "Wrapping in ARGB")
 
-        val plane = wrapArrayInPlane(_argbArray!!, targetWidth * targetFormat.bytesPerPixel)
+        val plane = wrapArrayInPlane(_destinationArray!!, targetWidth * targetFormat.bytesPerPixel)
         val argbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
 
         Log.i(TAG, "Converting to ARGB")
         resizeBuffer.convertTo(argbBuffer)
         Log.i(TAG, "Sending back to JS")
 
-        val colors = argbBuffer.asByteArray().map { it.toInt() }.toTypedArray()
-        val bitmap = Bitmap.createBitmap(colors.toIntArray(), targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
-
-        return _argbArray
+        return _destinationArray
     }
 
+
+    enum class RGBFormat {
+        RGB_8,
+        BGR_8,
+        ARGB_8,
+        RGBA_8,
+        BGRA_8,
+        ABGR_8;
+
+        val bytesPerPixel: Int
+            get() {
+                return when (this) {
+                    RGB_8, BGR_8 -> 3
+                    ARGB_8, RGBA_8, BGRA_8, ABGR_8 -> 4
+                }
+            }
+
+        companion object {
+            fun fromString(string: String): RGBFormat {
+                return when (string) {
+                    "rgb-uint8" -> RGB_8
+                    "rgba-uint8" -> RGBA_8
+                    "argb-uint8" -> ARGB_8
+                    "bgra-uint8" -> BGRA_8
+                    "bgr-uint8" -> BGR_8
+                    "abgr-uint8" -> ABGR_8
+                    else -> throw Error("Invalid PixelFormat! ($string)")
+                }
+            }
+        }
+    }
 }
