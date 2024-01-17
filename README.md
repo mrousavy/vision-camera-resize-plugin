@@ -16,7 +16,9 @@ A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame P
 Use the `resize` plugin within a Frame Processor:
 
 ```tsx
-import { resize } from 'vision-camera-resize-plugin';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
+
+const { resize } = useResizePlugin()
 
 const frameProcessor = useFrameProcessor((frame) => {
   'worklet'
@@ -26,7 +28,7 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 192,
       height: 192
     },
-    pixelFormat: 'rgb-888'
+    pixelFormat: 'rgb-uint8'
   })
   const array = new Uint8Array(resized)
 
@@ -36,6 +38,21 @@ const frameProcessor = useFrameProcessor((frame) => {
     b: array[2]
   }
 }, [])
+```
+
+Or outside of a function component:
+
+```tsx
+const { resize } = createResizePlugin()
+
+const frameProcessor = createFrameProcessor((frame) => {
+  'worklet'
+
+  const resized = resize(frame, {
+    // ...
+  })
+  // ...
+})
 ```
 
 ## Pixel Formats
@@ -52,7 +69,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgb-888</code></td>
+<td><code>rgb-uint8</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -60,7 +77,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgba-8888</code></td>
+<td><code>rgba-uint8</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -68,7 +85,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>argb-8888</code></td>
+<td><code>argb-uint8</code></td>
 <td>A</td>
 <td>R</td>
 <td>G</td>
@@ -76,7 +93,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgra-8888</code></td>
+<td><code>bgra-uint8</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -84,7 +101,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgr-888</code></td>
+<td><code>bgr-uint8</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -92,7 +109,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>abgr-8888</code></td>
+<td><code>abgr-uint8</code></td>
 <td>A</td>
 <td>B</td>
 <td>G</td>
@@ -113,6 +130,8 @@ From the model's description on the website, we understand that the model expect
 const objectDetection = useTensorflowModel(require('assets/efficientdet.tflite'))
 const model = objectDetection.state === "loaded" ? objectDetection.model : undefined
 
+const { resize } = useResizePlugin()
+
 const frameProcessor = useFrameProcessor((frame) => {
   'worklet'
 
@@ -121,7 +140,7 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 320,
       height: 320,
     },
-    pixelFormat: 'rgb-888'
+    pixelFormat: 'rgb-uint8'
   })
   const output = model.runSync([data])
 
@@ -141,7 +160,7 @@ const result = resize(frame, {
     width: 100,
     height: 100,
   },
-  pixelFormat: 'rgb-888',
+  pixelFormat: 'rgb-uint8',
 })
 const end = performance.now();
 

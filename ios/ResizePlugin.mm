@@ -46,22 +46,22 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
-  if ([pixelFormat isEqualToString:@"rgb-888"]) {
+  if ([pixelFormat isEqualToString:@"rgb-uint8"]) {
     return RGB_8;
   }
-  if ([pixelFormat isEqualToString:@"rgba-8888"]) {
+  if ([pixelFormat isEqualToString:@"rgba-uint8"]) {
     return RGBA_8;
   }
-  if ([pixelFormat isEqualToString:@"argb-8888"]) {
+  if ([pixelFormat isEqualToString:@"argb-uint8"]) {
     return ARGB_8;
   }
-  if ([pixelFormat isEqualToString:@"bgra-8888"]) {
+  if ([pixelFormat isEqualToString:@"bgra-uint8"]) {
     return BGRA_8;
   }
-  if ([pixelFormat isEqualToString:@"bgr-888"]) {
+  if ([pixelFormat isEqualToString:@"bgr-uint8"]) {
     return BGR_8;
   }
-  if ([pixelFormat isEqualToString:@"abgr-8888"]) {
+  if ([pixelFormat isEqualToString:@"abgr-uint8"]) {
     return ABGR_8;
   }
   [NSException raise:@"Invalid PixelFormat" format:@"Invalid PixelFormat passed! (%@)", pixelFormat];
