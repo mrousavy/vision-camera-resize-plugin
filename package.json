@@ -1,6 +1,6 @@
 {
   "name": "vision-camera-resize-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A VisionCamera Frame Processor Plugin for fast and efficient Frame resizing, cropping and pixelformat conversion",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
