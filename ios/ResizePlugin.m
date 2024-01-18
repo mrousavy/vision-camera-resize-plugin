@@ -1,5 +1,5 @@
 //
-//  ResizePlugin.mm
+//  ResizePlugin.m
 //  VisionCameraResizePlugin
 //
 //  Created by Marc Rousavy on 23.09.23.
