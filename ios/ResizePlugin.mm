@@ -252,7 +252,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
 
   size_t resizeArraySize = width * height * 4;
-  if (_resizeArray == nil || _resizeArray.count != resizeArraySize) {
+  if (_resizeArray == nil || _resizeArray.size != resizeArraySize) {
     NSLog(@"Allocating _resizeArray (size: %zu)...", resizeArraySize);
     _resizeArray = [[SharedArray alloc] initWithProxy:_proxy
                                                  size:resizeArraySize];
@@ -313,7 +313,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // 3. Prepare destination buffer (write into JS SharedArray)
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat);
   size_t arraySize = bytesPerPixel * targetWidth * targetHeight;
-  if (_destinationArray == nil || _destinationArray.count != arraySize) {
+  if (_destinationArray == nil || _destinationArray.size != arraySize) {
     NSLog(@"Allocating _destinationArray (size: %zu)...", arraySize);
     _destinationArray = [[SharedArray alloc] initWithProxy:_proxy allocateWithSize:arraySize];
   }
@@ -326,7 +326,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   // 4. Prepare ARGB_8888 array (intermediate type)
   size_t argbSize = 4 * frame.width * frame.height;
-  if (_argbArray == nil || _argbArray.count != argbSize) {
+  if (_argbArray == nil || _argbArray.size != argbSize) {
     NSLog(@"Allocating _argbArray (size: %zu)...", argbSize);
     _argbArray = [[SharedArray alloc] initWithProxy:_proxy allocateWithSize:argbSize];
   }
