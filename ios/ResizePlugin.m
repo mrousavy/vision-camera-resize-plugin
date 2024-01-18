@@ -255,7 +255,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   if (_resizeArray == nil || _resizeArray.size != resizeArraySize) {
     NSLog(@"Allocating _resizeArray (size: %zu)...", resizeArraySize);
     _resizeArray = [[SharedArray alloc] initWithProxy:_proxy
-                                                 size:resizeArraySize];
+                                     allocateWithSize:resizeArraySize];
     // reset _tempResizeBuffer as well as that depends on the size
     free(_tempResizeBuffer);
     _tempResizeBuffer = nil;
