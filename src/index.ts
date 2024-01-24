@@ -1,7 +1,14 @@
 import { useRef } from 'react';
 import { Frame, VisionCameraProxy } from 'react-native-vision-camera';
 
-interface Options {
+type DataType = 'uint8' | 'float32';
+type OutputArray<T extends DataType> = T extends 'uint8'
+  ? Uint8Array
+  : T extends 'float32'
+  ? Float32Array
+  : never;
+
+interface Options<T extends DataType> {
   /**
    * Scale the image to the given target size.
    */
@@ -12,20 +19,22 @@ interface Options {
   /**
    * Convert the Frame to the given target pixel format.
    *
-   * - `rgb-uint8`: [R, G, B] layout in a Uint8Array (values range from 0...255)
-   * - `'rgba-uint8'`: [R, G, B, A] layout in a Uint8Array (values range from 0...255)
-   * - `'argb-uint8'`: [A, R, G, B] layout in a Uint8Array (values range from 0...255)
-   * - `'bgra-uint8'`: [B, G, R, A] layout in a Uint8Array (values range from 0...255)
-   * - `'bgr-uint8'`: [B, G, R] layout in a Uint8Array (values range from 0...255)
-   * - `'abgr-uint8'`: [A, B, G, R] layout in a Uint8Array (values range from 0...255)
+   * - `'rgb'`: [R, G, B] layout
+   * - `'rgba'`: [R, G, B, A]
+   * - `'argb'`: [A, R, G, B]
+   * - `'bgra'`: [B, G, R, A]
+   * - `'bgr'`: [B, G, R]
+   * - `'abgr'`: [A, B, G, R]
    */
-  pixelFormat:
-    | 'rgb-uint8'
-    | 'rgba-uint8'
-    | 'argb-uint8'
-    | 'bgra-uint8'
-    | 'bgr-uint8'
-    | 'abgr-uint8';
+  pixelFormat: 'rgb' | 'rgba' | 'argb' | 'bgra' | 'bgr' | 'abgr';
+  /**
+   * The given type to use for the resulting buffer.
+   * Each color channel uses this type for representing pixels.
+   *
+   * - `'uint8'`: Resulting buffer is a `Uint8Array`, values range from 0 to 255
+   * - `'float32'`: Resulting buffer is a `Float32Array`, values range from 0.0 to 1.0
+   */
+  dataType: T;
 }
 
 /**
@@ -39,7 +48,7 @@ interface ResizePlugin {
    * Resizes the given Frame to the target width/height and
    * convert it to the given pixel format.
    */
-  resize(frame: Frame, options: Options): ArrayBuffer;
+  resize<T extends DataType>(frame: Frame, options: Options<T>): OutputArray<T>;
 }
 
 /**
@@ -58,10 +67,24 @@ export function createResizePlugin(): ResizePlugin {
   }
 
   return {
-    resize: (frame, options): ArrayBuffer => {
+    resize: <T extends DataType>(
+      frame: Frame,
+      options: Options<T>
+    ): OutputArray<T> => {
       'worklet';
       // @ts-expect-error
-      return resizePlugin.call(frame, options);
+      const arrayBuffer = resizePlugin.call(frame, options) as ArrayBuffer;
+
+      switch (options.dataType) {
+        case 'uint8':
+          // @ts-expect-error
+          return new Uint8Array(arrayBuffer);
+        case 'float32':
+          // @ts-expect-error
+          return new Float32Array(arrayBuffer);
+        default:
+          throw new Error(`Invalid data type (${options.dataType})!`);
+      }
     },
   };
 }
