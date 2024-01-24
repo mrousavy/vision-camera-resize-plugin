@@ -33,13 +33,19 @@ export default function App() {
       pixelFormat: 'rgb',
       dataType: 'uint8',
     });
-    const array = new Uint8Array(result);
+    console.log(
+      result[0],
+      result[1],
+      result[2],
+      result[3],
+      '(' + result.length + ')'
+    );
 
     const end = performance.now();
 
     console.log(
       `Resized ${frame.width}x${frame.height} into 100x100 frame (${
-        array.length
+        result.length
       }) in ${(end - start).toFixed(2)}ms`
     );
   }, []);
