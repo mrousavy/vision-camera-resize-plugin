@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { StyleSheet, View } from 'react-native';
+import { useTensorflowModel } from 'react-native-fast-tflite';
 import {
   Camera,
   useCameraDevice,
@@ -8,6 +9,10 @@ import {
   useFrameProcessor,
 } from 'react-native-vision-camera';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
+
+const BlazeFaceModel = {
+  url: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite',
+};
 
 export default function App() {
   const permission = useCameraPermission();
@@ -18,37 +23,41 @@ export default function App() {
   }, [permission]);
 
   const plugin = useResizePlugin();
+  const { model } = useTensorflowModel(BlazeFaceModel);
 
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
-    console.log(frame.toString());
+  const frameProcessor = useFrameProcessor(
+    (frame) => {
+      'worklet';
+      console.log(frame.toString());
 
-    const start = performance.now();
+      const start = performance.now();
 
-    const result = plugin.resize(frame, {
-      size: {
-        width: 100,
-        height: 100,
-      },
-      pixelFormat: 'argb',
-      dataType: 'uint8',
-    });
-    console.log(
-      result[0],
-      result[1],
-      result[2],
-      result[3],
-      '(' + result.length + ')'
-    );
+      const result = plugin.resize(frame, {
+        size: {
+          width: 128,
+          height: 128,
+        },
+        pixelFormat: 'rgb',
+        dataType: 'float32',
+      });
 
-    const end = performance.now();
+      const end = performance.now();
+      console.log(
+        `Resized ${frame.width}x${frame.height} into 100x100 frame (${
+          result.length
+        }) in ${(end - start).toFixed(2)}ms`
+      );
 
-    console.log(
-      `Resized ${frame.width}x${frame.height} into 100x100 frame (${
-        result.length
-      }) in ${(end - start).toFixed(2)}ms`
-    );
-  }, []);
+      if (model != null) {
+        console.log('Running BlazeFace...');
+        const results = model.runSync([result]);
+        const features = results[0];
+        const scores = results[1];
+        console.log(`BlazeFace ran! Scores: ${scores[0]}`);
+      }
+    },
+    [model]
+  );
 
   return (
     <View style={styles.container}>
