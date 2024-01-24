@@ -42,4 +42,8 @@ const config = {
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+const newConfig = mergeConfig(getDefaultConfig(__dirname), config);
+
+newConfig.resolver.assetExts.push('tflite');
+
+module.exports = newConfig;

@@ -23,7 +23,9 @@ export default function App() {
   }, [permission]);
 
   const plugin = useResizePlugin();
-  const { model } = useTensorflowModel(BlazeFaceModel);
+  const { model } = useTensorflowModel(
+    require('../assets/object-detection.tflite')
+  );
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
@@ -34,11 +36,11 @@ export default function App() {
 
       const result = plugin.resize(frame, {
         size: {
-          width: 128,
-          height: 128,
+          width: 300,
+          height: 300,
         },
         pixelFormat: 'rgb',
-        dataType: 'float32',
+        dataType: 'uint8',
       });
 
       const end = performance.now();
@@ -49,11 +51,13 @@ export default function App() {
       );
 
       if (model != null) {
-        console.log('Running BlazeFace...');
+        console.log('Running object detection...');
         const results = model.runSync([result]);
-        const features = results[0];
-        const scores = results[1];
-        console.log(`BlazeFace ran! Scores: ${scores[0]}`);
+        const locations = results[0];
+        const classes = results[1];
+        const scores = results[2];
+        const num_detections = results[3];
+        console.log(`Detected ${num_detections} objects!`);
       }
     },
     [model]
