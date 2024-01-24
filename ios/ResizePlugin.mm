@@ -153,16 +153,18 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
   };
   
-  // TODO: Cache
-  _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width
-                                            height:frame.height
-                                       pixelFormat:ARGB
-                                          dataType:UINT8
-                                             proxy:_proxy];
+  if (_argbBuffer == nil || _argbBuffer.width != frame.width || _argbBuffer.height != frame.height) {
+    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width
+                                              height:frame.height
+                                         pixelFormat:ARGB
+                                            dataType:UINT8
+                                               proxy:_proxy];
+  }
+  const vImage_Buffer* destination = _argbBuffer.imageBuffer;
 
   error = vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY,
                                                &sourceCbCr,
-                                               _argbBuffer.imageBuffer,
+                                               destination,
                                                &info,
                                                nil,
                                                255,
