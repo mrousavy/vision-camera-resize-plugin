@@ -30,8 +30,8 @@ export default function App() {
         width: 100,
         height: 100,
       },
-      pixelFormat: 'rgb',
-      dataType: 'float32',
+      pixelFormat: 'argb',
+      dataType: 'uint8',
     });
     console.log(
       result[0],

@@ -247,20 +247,27 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return destinationBuffer;
 }
 
-- (void)convertFrame:(Frame*)frame
-              toARGB:(const vImage_Buffer*)destination {
+- (FrameBuffer*)convertFrameToARGB:(Frame*)frame {
   NSLog(@"Converting BGRA_8 Frame to ARGB_8...");
+  
+  if (_argbBuffer == nil || _argbBuffer.width != frame.width || _argbBuffer.height != frame.height) {
+    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width
+                                              height:frame.height
+                                         pixelFormat:ARGB
+                                            dataType:UINT8
+                                               proxy:_proxy];
+  }
 
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
-
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-
+  
   vImage_Buffer input {
     .data = CVPixelBufferGetBaseAddress(pixelBuffer),
     .width = frame.width,
     .height = frame.height,
     .rowBytes = frame.bytesPerRow
   };
+  const vImage_Buffer* destination = _argbBuffer.imageBuffer;
 
   uint8_t permuteMap[4] = { 3, 2, 1, 0 };
   vImage_Error error = vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
@@ -269,6 +276,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   }
 
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+  
+  return _argbBuffer;
 }
 
 - (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer
@@ -400,7 +409,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     result = [self convertYUV:frame
                         toRGB:kvImageARGB8888];
   } else if (sourceType == kCVPixelFormatType_32BGRA) {
-    // we're in BGRA
+    // Convert BGRA -> ARGB_8888 first, only then we can operate in RGB layouts
+    result = [self convertFrameToARGB:frame];
   } else {
     [NSException raise:@"Invalid PixelFormat" format:@"Frame has invalid Pixel Format! Disable buffer compression and 10-bit HDR."];
     return nil;
