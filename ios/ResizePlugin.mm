@@ -190,7 +190,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   if (buffer.bytesPerPixel != targetBytesPerPixel) {
     // The bytes per pixel are not the same, so we need an intermediate array allocation.
     if (_convertBuffer == nil || _convertBuffer.width != buffer.width || _convertBuffer.height != buffer.height || _convertBuffer.pixelFormat != destinationFormat) {
-      _convertBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width height:buffer.height pixelFormat:destinationFormat dataType:UINT8 proxy:_proxy];
+      _convertBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width
+                                                   height:buffer.height
+                                              pixelFormat:destinationFormat
+                                                 dataType:UINT8
+                                                    proxy:_proxy];
     }
     destinationBuffer = _convertBuffer;
   }
@@ -278,9 +282,12 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
 
-  size_t resizeArraySize = width * height * buffer.bytesPerPixel;
   if (_resizeBuffer == nil || _resizeBuffer.width != width || _resizeBuffer.height != height) {
-    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:width height:height pixelFormat:ARGB dataType:UINT8 proxy:_proxy];
+    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:width
+                                                height:height
+                                           pixelFormat:ARGB
+                                              dataType:UINT8
+                                                 proxy:_proxy];
     // reset _tempResizeBuffer as well as that depends on the size
     free(_tempResizeBuffer);
     _tempResizeBuffer = nil;
