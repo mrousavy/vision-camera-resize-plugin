@@ -17,6 +17,7 @@ import io.github.crow_misia.libyuv.Rgb24Buffer
 import io.github.crow_misia.libyuv.RgbaBuffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.roundToInt
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
@@ -55,9 +56,15 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         val destination = _floatDestinationArray!!.byteBuffer
         val source = array.byteBuffer
 
+        // Use little endian as a default byte order
+        source.order(ByteOrder.LITTLE_ENDIAN)
+        destination.order(ByteOrder.LITTLE_ENDIAN)
+
+        // Reset to position 0
         destination.rewind()
         source.rewind()
 
+        // Copy values over as floats
         while (source.hasRemaining()) {
             val uint8Value = source.get()
             val float32Value = uint8Value.toFloat() / 255f
