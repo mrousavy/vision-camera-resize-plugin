@@ -24,7 +24,7 @@
     _pixelFormat = pixelFormat;
     _dataType = dataType;
     
-    size_t bytesPerPixel = getBytesPerPixel(pixelFormat, dataType);
+    size_t bytesPerPixel = [FrameBuffer getBytesPerPixel:pixelFormat withType:dataType];
     size_t size = width * height * bytesPerPixel;
     NSLog(@"Allocating SharedArray (size: %zu)...", size);
     _sharedArray = [[SharedArray alloc] initWithProxy:proxy allocateWithSize:size];
