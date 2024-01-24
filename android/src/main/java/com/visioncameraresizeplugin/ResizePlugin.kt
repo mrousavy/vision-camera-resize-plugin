@@ -22,6 +22,8 @@ import kotlin.math.roundToInt
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     private var _resizeBuffer: I420Buffer? = null
     private var _destinationArray: SharedArray? = null
+    private var _floatDestinationArray: SharedArray? = null
+
     companion object {
         private const val TAG = "ResizePlugin"
     }
@@ -41,6 +43,31 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             _resizeBuffer = I420Buffer.allocate(width, height)
         }
         return _resizeBuffer!!
+    }
+
+    private fun convertToFloat32(array: SharedArray): SharedArray {
+        Log.i(TAG, "Converting uint8[${array.size}] to float32...")
+        val targetResultSize = array.size * DataType.FLOAT32.bytesPerValue
+        if (_floatDestinationArray == null || _floatDestinationArray!!.size != targetResultSize) {
+            Log.i(TAG, "Allocating _floatDestinationArray... (size: $targetResultSize)")
+            _floatDestinationArray = SharedArray(proxy, targetResultSize)
+        }
+        val destination = _floatDestinationArray!!.byteBuffer
+        val source = _destinationArray!!.byteBuffer
+
+        destination.rewind()
+        source.rewind()
+
+        while (source.hasRemaining()) {
+            val uint8Value = source.get()
+            val float32Value = uint8Value.toFloat() / 255f
+            destination.putFloat(float32Value)
+        }
+
+        source.rewind()
+        destination.rewind()
+
+        return _floatDestinationArray!!
     }
 
     override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any? {
@@ -126,7 +153,17 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         }
         Log.i(TAG, "Resized & Converted!")
 
-        return _destinationArray
+        when (targetType) {
+            DataType.UINT8 -> {
+                // We are already in uint8
+                return _destinationArray
+            }
+            DataType.FLOAT32 -> {
+                // Convert uint8 values to float32
+                val result = convertToFloat32(_destinationArray!!)
+                return result
+            }
+        }
     }
 
 
