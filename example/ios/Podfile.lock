@@ -1120,7 +1120,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - VisionCamera (3.8.1):
+  - VisionCamera (3.8.2):
     - React
     - React-callinvoker
     - React-Core
@@ -1389,7 +1389,7 @@ SPEC CHECKSUMS:
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   vision-camera-resize-plugin: b91b0d4bbc2ed14e535358fa744768d64c358fd9
-  VisionCamera: f6ca954813603e753578623fcbb9364d3e08d6ce
+  VisionCamera: edbcd00e27a438b2228f67823e2b8d15a189065f
   Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 9cf228fb4a0a05c32bc602c7f07154b180219b9e

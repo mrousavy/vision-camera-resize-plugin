@@ -26,14 +26,14 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 192,
       height: 192
     },
-    pixelFormat: 'rgb-uint8'
+    pixelFormat: 'rgb',
+    dataType: 'uint8'
   })
-  const array = new Uint8Array(resized)
 
   const firstPixel = {
-    r: array[0],
-    g: array[1],
-    b: array[2]
+    r: resized[0],
+    g: resized[1],
+    b: resized[2]
   }
 }, [])
 ```
@@ -55,7 +55,7 @@ const frameProcessor = createFrameProcessor((frame) => {
 
 ## Pixel Formats
 
-The resize plugin operates in RGB colorspace, and all values are in `uint8`.
+The resize plugin operates in RGB colorspace.
 
 <table>
 <tr>
@@ -67,7 +67,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgb-uint8</code></td>
+<td><code>rgb</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -75,7 +75,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>rgba-uint8</code></td>
+<td><code>rgba</code></td>
 <td>R</td>
 <td>G</td>
 <td>B</td>
@@ -83,7 +83,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>argb-uint8</code></td>
+<td><code>argb</code></td>
 <td>A</td>
 <td>R</td>
 <td>G</td>
@@ -91,7 +91,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgra-uint8</code></td>
+<td><code>bgra</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -99,7 +99,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>bgr-uint8</code></td>
+<td><code>bgr</code></td>
 <td>B</td>
 <td>G</td>
 <td>R</td>
@@ -107,7 +107,7 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 </tr>
 
 <tr>
-<td><code>abgr-uint8</code></td>
+<td><code>abgr</code></td>
 <td>A</td>
 <td>B</td>
 <td>G</td>
@@ -116,14 +116,42 @@ The resize plugin operates in RGB colorspace, and all values are in `uint8`.
 
 </table>
 
+## Data Types
+
+The resize plugin can either convert to uint8 or float32 values:
+
+<table>
+<tr>
+<th>Name</th>
+<th>JS Type</th>
+<th>Value Range</th>
+<th>Example size</th>
+</tr>
+
+<tr>
+<td><code>uint8</code></td>
+<td><code>Uint8Array</code></td>
+<td>0...255</td>
+<td>1920x1080 RGB Frame = ~6.2 MB</td>
+</tr>
+
+<tr>
+<td><code>float32</code></td>
+<td><code>Float32Array</code></td>
+<td>0.0...1.0</td>
+<td>1920x1080 RGB Frame = ~24.8 MB</td>
+</tr>
+
+</table>
+
 ### Performance
 
 If possible, use one of these two formats:
 
-- `argb-uint8`: Can be converted the fastest, but has an additional unused alpha channel.
-- `rgb-uint8`: Requires one more conversion step from `argb-uint8`, but uses 25% less memory due to the removed alpha channel.
+- `argb` in `uint8`: Can be converted the fastest, but has an additional unused alpha channel.
+- `rgb` in `uint8`: Requires one more conversion step from `argb`, but uses 25% less memory due to the removed alpha channel.
 
-All other formats require additional conversion steps, and `float` models have additional memory overhead (up to 4x as big).
+All other formats require additional conversion steps, and `float` models have additional memory overhead (4x as big).
 
 When using TensorFlow Lite, try to convert your model to use `argb-uint8` or `rgb-uint8` as it's input type.
 
@@ -149,7 +177,8 @@ const frameProcessor = useFrameProcessor((frame) => {
       width: 320,
       height: 320,
     },
-    pixelFormat: 'rgb-uint8'
+    pixelFormat: 'rgb',
+    dataType: 'uint8'
   })
   const output = model.runSync([data])
 
@@ -169,7 +198,8 @@ const result = resize(frame, {
     width: 100,
     height: 100,
   },
-  pixelFormat: 'rgb-uint8',
+  pixelFormat: 'rgb',
+  dataType: 'uint8'
 })
 const end = performance.now()
 

@@ -31,7 +31,7 @@ export default function App() {
         height: 100,
       },
       pixelFormat: 'rgb',
-      dataType: 'uint8',
+      dataType: 'float32',
     });
     console.log(
       result[0],
