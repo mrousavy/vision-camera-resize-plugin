@@ -19,11 +19,6 @@ import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
-val AbstractBuffer.totalSize: Int
-    get() {
-        return planes.sumOf { it.buffer.limit() }
-    }
-
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     private var _resizeBuffer: I420Buffer? = null
     private var _destinationArray: SharedArray? = null
@@ -55,7 +50,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
         var targetWidth = frame.width
         var targetHeight = frame.height
-        var targetFormat = RGBFormat.ARGB_8
+        var targetFormat = RGBFormat.ARGB
+        var targetType = DataType.UINT8
 
         val targetSize = params["size"] as? Map<*, *>
         if (targetSize != null) {
@@ -74,6 +70,12 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             Log.i(TAG, "Target Format: $targetFormat")
         }
 
+        val dataTypeString = params["dataType"] as? String
+        if (dataTypeString != null) {
+            targetType = DataType.fromString(dataTypeString)
+            Log.i(TAG, "Target DataType: $targetType")
+        }
+
         val image = frame.image
         Log.i(TAG, "Frame Format: ${frame.pixelFormat} (${image.format})")
         if (image.format != ImageFormat.YUV_420_888) {
@@ -87,37 +89,37 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         Log.i(TAG, "Resizing ${frame.width}x${frame.height} Frame to ${targetWidth}x${targetHeight}...")
         buffer.scale(resizeBuffer, FilterMode.BILINEAR)
 
-        val argbSize = targetWidth * targetHeight * targetFormat.bytesPerPixel
+        val argbSize = targetWidth * targetHeight * targetFormat.channelsPerPixel
         if (_destinationArray == null || _destinationArray!!.byteBuffer.remaining() != argbSize) {
             Log.i(TAG, "Allocating _argbArray... (size: $argbSize)")
             _destinationArray = SharedArray(proxy, argbSize)
         }
         _destinationArray!!.byteBuffer.rewind()
 
-        val plane = wrapArrayInPlane(_destinationArray!!, targetWidth * targetFormat.bytesPerPixel)
+        val plane = wrapArrayInPlane(_destinationArray!!, targetWidth * targetFormat.channelsPerPixel)
 
         Log.i(TAG, "Converting to $targetFormat...")
         when (targetFormat) {
-            RGBFormat.RGB_8 -> {
+            RGBFormat.RGB -> {
                 val rgbBuffer = Rgb24Buffer.wrap(plane, targetWidth, targetHeight)
                 resizeBuffer.convertTo(rgbBuffer)
             }
-            RGBFormat.BGR_8 -> {
-                throw Error("bgr-uint8 is not yet implemented!")
+            RGBFormat.BGR -> {
+                throw Error("bgr is not yet implemented!")
             }
-            RGBFormat.ARGB_8 -> {
+            RGBFormat.ARGB -> {
                 val rgbBuffer = ArgbBuffer.wrap(plane, targetWidth, targetHeight)
                 resizeBuffer.convertTo(rgbBuffer)
             }
-            RGBFormat.RGBA_8 -> {
+            RGBFormat.RGBA -> {
                 val rgbBuffer = RgbaBuffer.wrap(plane, targetWidth, targetHeight)
                 resizeBuffer.convertTo(rgbBuffer)
             }
-            RGBFormat.BGRA_8 -> {
+            RGBFormat.BGRA -> {
                 val rgbBuffer = BgraBuffer.wrap(plane, targetWidth, targetHeight)
                 resizeBuffer.convertTo(rgbBuffer)
             }
-            RGBFormat.ABGR_8 -> {
+            RGBFormat.ABGR -> {
                 val rgbBuffer = AbgrBuffer.wrap(plane, targetWidth, targetHeight)
                 resizeBuffer.convertTo(rgbBuffer)
             }
@@ -129,31 +131,54 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
 
     enum class RGBFormat {
-        RGB_8,
-        BGR_8,
-        ARGB_8,
-        RGBA_8,
-        BGRA_8,
-        ABGR_8;
+        RGB,
+        BGR,
+        ARGB,
+        RGBA,
+        BGRA,
+        ABGR;
 
-        val bytesPerPixel: Int
+        val channelsPerPixel: Int
             get() {
                 return when (this) {
-                    RGB_8, BGR_8 -> 3
-                    ARGB_8, RGBA_8, BGRA_8, ABGR_8 -> 4
+                    RGB, BGR -> 3
+                    ARGB, RGBA, BGRA, ABGR -> 4
                 }
             }
 
         companion object {
             fun fromString(string: String): RGBFormat {
                 return when (string) {
-                    "rgb-uint8" -> RGB_8
-                    "rgba-uint8" -> RGBA_8
-                    "argb-uint8" -> ARGB_8
-                    "bgra-uint8" -> BGRA_8
-                    "bgr-uint8" -> BGR_8
-                    "abgr-uint8" -> ABGR_8
+                    "rgb" -> RGB
+                    "rgba" -> RGBA
+                    "argb" -> ARGB
+                    "bgra" -> BGRA
+                    "bgr" -> BGR
+                    "abgr" -> ABGR
                     else -> throw Error("Invalid PixelFormat! ($string)")
+                }
+            }
+        }
+    }
+
+    enum class DataType {
+        UINT8,
+        FLOAT32;
+
+        val bytesPerValue: Int
+            get() {
+                return when (this) {
+                    UINT8 -> 1
+                    FLOAT32 -> 4
+                }
+            }
+
+        companion object {
+            fun fromString(string: String): DataType {
+                return when (string) {
+                    "uint8" -> UINT8
+                    "float32" -> FLOAT32
+                    else -> throw Error("Invalid DataType! ($string)")
                 }
             }
         }
