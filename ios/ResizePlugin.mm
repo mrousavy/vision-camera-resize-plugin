@@ -16,12 +16,17 @@
 #import <Accelerate/Accelerate.h>
 
 typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
-  RGB_8,
-  ARGB_8,
-  RGBA_8,
-  BGR_8,
-  BGRA_8,
-  ABGR_8
+  RGB,
+  ARGB,
+  RGBA,
+  BGR,
+  BGRA,
+  ABGR
+};
+
+typedef NS_ENUM(NSInteger, ConvertDataType) {
+  UINT8,
+  FLOAT32
 };
 
 @interface ResizePlugin : FrameProcessorPlugin
@@ -52,38 +57,59 @@ typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
-  if ([pixelFormat isEqualToString:@"rgb-uint8"]) {
-    return RGB_8;
+  if ([pixelFormat isEqualToString:@"rgb"]) {
+    return RGB;
   }
-  if ([pixelFormat isEqualToString:@"rgba-uint8"]) {
-    return RGBA_8;
+  if ([pixelFormat isEqualToString:@"rgba"]) {
+    return RGBA;
   }
-  if ([pixelFormat isEqualToString:@"argb-uint8"]) {
-    return ARGB_8;
+  if ([pixelFormat isEqualToString:@"argb"]) {
+    return ARGB;
   }
-  if ([pixelFormat isEqualToString:@"bgra-uint8"]) {
-    return BGRA_8;
+  if ([pixelFormat isEqualToString:@"bgra"]) {
+    return BGRA;
   }
-  if ([pixelFormat isEqualToString:@"bgr-uint8"]) {
-    return BGR_8;
+  if ([pixelFormat isEqualToString:@"bgr"]) {
+    return BGR;
   }
-  if ([pixelFormat isEqualToString:@"abgr-uint8"]) {
-    return ABGR_8;
+  if ([pixelFormat isEqualToString:@"abgr"]) {
+    return ABGR;
   }
   [NSException raise:@"Invalid PixelFormat" format:@"Invalid PixelFormat passed! (%@)", pixelFormat];
-  return RGB_8;
+  return RGB;
 }
 
-size_t getBytesPerPixel(ConvertPixelFormat format) {
+ConvertDataType parseDataType(NSString* dataType) {
+  if ([dataType isEqualToString:@"uint8"]) {
+    return UINT8;
+  }
+  if ([dataType isEqualToString:@"float32"]) {
+    return FLOAT32;
+  }
+  [NSException raise:@"Invalid DataType" format:@"Invalid DataType passed! (%@)", dataType];
+  return UINT8;
+}
+
+size_t getBytesForDataType(ConvertDataType dataType) {
+  switch (dataType) {
+    case UINT8:
+      return sizeof(uint8_t);
+    case FLOAT32:
+      return sizeof(float32_t);
+  }
+}
+
+size_t getBytesPerPixel(ConvertPixelFormat format, ConvertDataType dataType) {
+  size_t dataTypeSize = getBytesForDataType(dataType);
   switch (format) {
-    case RGB_8:
-    case BGR_8:
-      return 3;
-    case RGBA_8:
-    case ARGB_8:
-    case BGRA_8:
-    case ABGR_8:
-      return 4;
+    case RGB:
+    case BGR:
+      return 3 * dataTypeSize;
+    case RGBA:
+    case ARGB:
+    case BGRA:
+    case ABGR:
+      return 4 * dataTypeSize;
   }
 }
 
@@ -174,12 +200,12 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   Pixel_8888 backgroundColor { 0, 0, 0, 255 };
 
   switch (destinationFormat) {
-    case RGB_8: {
+    case RGB: {
       NSLog(@"Converting ARGB_8 Frame to RGB_8...");
       error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       break;
     }
-    case BGR_8: {
+    case BGR: {
       NSLog(@"Converting ARGB_8 Frame to BGR_8...");
       error = vImageFlatten_ARGB8888ToRGB888(buffer, destination, backgroundColor, false, kvImageNoFlags);
       uint8_t permuteMap[4] = { 2, 1, 0 };
@@ -187,23 +213,23 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       error = vImagePermuteChannels_RGB888(destination, destination, permuteMap, kvImageNoFlags);
       break;
     }
-    case ARGB_8: {
+    case ARGB: {
       // We are already in ARGB_8.
       break;
     }
-    case RGBA_8: {
+    case RGBA: {
       NSLog(@"Converting ARGB_8 Frame to RGBA_8...");
       uint8_t permuteMap[4] = { 3, 1, 2, 0 };
       error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
-    case BGRA_8: {
+    case BGRA: {
       NSLog(@"Converting ARGB_8 Frame to BGRA_8...");
       uint8_t permuteMap[4] = { 3, 2, 1, 0 };
       error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
       break;
     }
-    case ABGR_8: {
+    case ABGR: {
       NSLog(@"Converting ARGB_8 Frame to ABGR_8...");
       uint8_t permuteMap[4] = { 0, 3, 2, 1 };
       error = vImagePermuteChannels_ARGB8888(buffer, destination, permuteMap, kvImageNoFlags);
@@ -299,7 +325,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     NSLog(@"ResizePlugin: No custom target size supplied.");
   }
 
-  ConvertPixelFormat pixelFormat = BGRA_8;
+  ConvertPixelFormat pixelFormat = BGRA;
   NSString* pixelFormatString = arguments[@"pixelFormat"];
   if (pixelFormatString != nil) {
     pixelFormat = parsePixelFormat(pixelFormatString);
@@ -307,11 +333,20 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   } else {
     NSLog(@"ResizePlugin: No custom target format supplied.");
   }
+  
+  ConvertDataType dataType = UINT8;
+  NSString* dataTypeString = arguments[@"dataType"];
+  if (dataTypeString != nil) {
+    dataType = parseDataType(dataTypeString);
+    NSLog(@"ResizePlugin: Using target data type: %@", dataTypeString);
+  } else {
+    NSLog(@"ResizePlugin: No custom data type supplied.");
+  }
 
   FourCharCode sourceType = getFramePixelFormat(frame);
 
   // 3. Prepare destination buffer (write into JS SharedArray)
-  size_t bytesPerPixel = getBytesPerPixel(pixelFormat);
+  size_t bytesPerPixel = getBytesPerPixel(pixelFormat, dataType);
   size_t arraySize = bytesPerPixel * targetWidth * targetHeight;
   if (_destinationArray == nil || _destinationArray.size != arraySize) {
     NSLog(@"Allocating _destinationArray (size: %zu)...", arraySize);
@@ -349,7 +384,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     // 2. Resize
     argbDestination = [self resizeARGB:&argbDestination toWidth:targetWidth toHeight:targetHeight];
 
-    if (pixelFormat == ARGB_8) {
+    if (pixelFormat == ARGB) {
       // User wanted ARGB_8888, perfect - we already got that!
       return _resizeArray;
     } else {
