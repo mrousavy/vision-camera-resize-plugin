@@ -53,7 +53,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             _floatDestinationArray = SharedArray(proxy, targetResultSize)
         }
         val destination = _floatDestinationArray!!.byteBuffer
-        val source = _destinationArray!!.byteBuffer
+        val source = array.byteBuffer
 
         destination.rewind()
         source.rewind()
