@@ -113,10 +113,17 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   return destination;
 }
 
+std::string rectToString(int x, int y, int width, int height) {
+  return std::to_string(x) + ", " + std::to_string(y) + " @ " + std::to_string(width) + "x" + std::to_string(height);
+}
+
 FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
                                          int x, int y,
                                          int width, int height) {
-  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping %zu x %zu ARGB buffer to %zu x %zu...", frameBuffer.width, frameBuffer.height, width, height);
+  auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
+  auto targetString = rectToString(x, y, width, height);
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping %s ARGB buffer to %s...",
+                      rectString.c_str(), targetString.c_str());
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
@@ -209,7 +216,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   return frameBuffer;
 }
 
-jni::alias_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
+jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
                                                       int cropX, int cropY,
                                                       int targetWidth, int targetHeight,
                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
@@ -221,6 +228,8 @@ jni::alias_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
 
   // 2. Crop ARGB
   result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
+
+  return result.buffer;
 
   // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);

@@ -51,7 +51,7 @@ public:
 private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
-  alias_ref<JByteBuffer> resize(alias_ref<JImage> image,
+  global_ref<JByteBuffer> resize(alias_ref<JImage> image,
                                 int cropX, int cropY,
                                 int targetWidth, int targetHeight,
                                 int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);

@@ -40,10 +40,10 @@ export default function App() {
       dataType: 'uint8',
     });
     console.log(
-      result[0],
-      result[1],
-      result[2],
-      result[3],
+      result[Math.round(result.length / 2) + 0],
+      result[Math.round(result.length / 2) + 1],
+      result[Math.round(result.length / 2) + 2],
+      result[Math.round(result.length / 2) + 3],
       '(' + result.length + ')'
     );
 
