@@ -253,7 +253,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
     throw std::runtime_error("Failed to convert Buffer to target Data Type! Error: " + std::to_string(status));
   }
 
-  return frameBuffer;
+  return destination;
 }
 
 jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
