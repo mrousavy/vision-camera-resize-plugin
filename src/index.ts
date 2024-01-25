@@ -8,14 +8,35 @@ type OutputArray<T extends DataType> = T extends 'uint8'
   ? Float32Array
   : never;
 
+interface Size {
+  /**
+   * The width to resize the Frame to.
+   */
+  width: number;
+  /**
+   * The height to resize the Frame to.
+   */
+  height: number;
+}
+
+interface Rect extends Size {
+  /**
+   * The origin X of the Frame used for cropping. If not set, a center-crop will be performed.
+   */
+  x: number;
+  /**
+   * The origin Y of the Frame used for cropping. If not set, a center-crop will be performed.
+   */
+  y: number;
+}
+
 interface Options<T extends DataType> {
   /**
    * Scale the image to the given target size.
+   * - If `x` and `y` are set, the plugin will crop to the target origin.
+   * - If `x` and `y` are not set, the plugin will perform a center-crop of the image.
    */
-  size?: {
-    width: number;
-    height: number;
-  };
+  size?: Size | Rect;
   /**
    * Convert the Frame to the given target pixel format.
    *

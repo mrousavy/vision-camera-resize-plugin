@@ -1,5 +1,6 @@
 package com.visioncameraresizeplugin
 
+import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.util.Log
 import com.mrousavy.camera.frameprocessor.Frame
@@ -7,7 +8,6 @@ import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
 import io.github.crow_misia.libyuv.AbgrBuffer
-import io.github.crow_misia.libyuv.AbstractBuffer
 import io.github.crow_misia.libyuv.ArgbBuffer
 import io.github.crow_misia.libyuv.BgraBuffer
 import io.github.crow_misia.libyuv.FilterMode
@@ -18,7 +18,6 @@ import io.github.crow_misia.libyuv.RgbaBuffer
 import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.roundToInt
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     private var _resizeBuffer: I420Buffer? = null
@@ -41,6 +40,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     private fun getCachedResizeBuffer(width: Int, height: Int): I420Buffer {
         if (_resizeBuffer == null || _resizeBuffer!!.width != width || _resizeBuffer!!.height != height) {
             Log.i(TAG, "Allocating _resizeBuffer... (size: ${width}x${height})")
+            _resizeBuffer?.close()
             _resizeBuffer = I420Buffer.allocate(width, height)
         }
         return _resizeBuffer!!
@@ -77,6 +77,11 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         return _floatDestinationArray!!
     }
 
+    // Used for debugging/inspecting only
+    private fun bufferToImage(buffer: AbgrBuffer): Bitmap {
+        return buffer.asBitmap()
+    }
+
     override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any? {
         if (params == null) {
             throw Error("Options cannot be null!")
@@ -84,6 +89,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
         var targetWidth = frame.width
         var targetHeight = frame.height
+        var targetX = 0
+        var targetY = 0
         var targetFormat = RGBFormat.ARGB
         var targetType = DataType.UINT8
 
@@ -91,9 +98,20 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         if (targetSize != null) {
             val targetWidthDouble = targetSize["width"] as? Double
             val targetHeightDouble = targetSize["height"] as? Double
+            val targetXDouble = targetSize["x"] as? Double
+            val targetYDouble = targetSize["y"] as? Double
             if (targetWidthDouble != null && targetHeightDouble != null) {
                 targetWidth = targetWidthDouble.toInt()
                 targetHeight = targetHeightDouble.toInt()
+                if (targetXDouble != null && targetYDouble != null) {
+                    targetX = targetXDouble.toInt()
+                    targetY = targetYDouble.toInt()
+                    throw Error("Cropping is not yet supported on Android!")
+                } else {
+                    // by default, do a center crop
+                    targetX = (frame.width / 2) - (targetWidth / 2)
+                    targetY = (frame.height / 2) - (targetHeight / 2)
+                }
                 Log.i(TAG, "Target size: $targetWidth x $targetHeight")
             }
         }
