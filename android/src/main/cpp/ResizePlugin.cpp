@@ -99,15 +99,15 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   };
 
   // 1. Convert from YUV -> ARGB
-  int result = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
+  int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
                                         uBuffer->getDirectBytes(), uPlane->getRowStride(),
                                         vBuffer->getDirectBytes(), vPlane->getRowStride(),
                                         uvPixelStride,
                                         destination.data(), width * channels * channelSize,
                                         width, height);
 
-  if (result != 0) {
-    throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(result));
+  if (status != 0) {
+    throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
   }
 
   return destination;
@@ -122,7 +122,7 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
                                          int width, int height) {
   auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
   auto targetString = rectToString(x, y, width, height);
-  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping %s ARGB buffer to %s...",
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping [%s] ARGB buffer to [%s]...",
                       rectString.c_str(), targetString.c_str());
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
@@ -141,12 +141,15 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
       .buffer = _resizeBuffer,
   };
 
-  libyuv::ConvertToARGB(frameBuffer.data(), 1,
-                        destination.data(), destination.getRowStride(),
-                        x, y,
-                        frameBuffer.width, frameBuffer.height,
-                        width, height,
-                        libyuv::kRotate0, 0);
+  int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.getRowStride(),
+                                     destination.data(), destination.getRowStride(),
+                                     x, y,
+                                     frameBuffer.width, frameBuffer.height,
+                                     width, height,
+                                     libyuv::kRotate0, libyuv::FOURCC_ARGB);
+  if (status != 0) {
+    throw std::runtime_error("Failed to crop ARGB Buffer! Status: " + std::to_string(status));
+  }
 
   return destination;
 }
@@ -228,8 +231,6 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
 
   // 2. Crop ARGB
   result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
-
-  return result.buffer;
 
   // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
