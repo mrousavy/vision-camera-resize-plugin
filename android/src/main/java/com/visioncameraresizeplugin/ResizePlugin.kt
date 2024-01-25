@@ -33,6 +33,10 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
     companion object {
         private const val TAG = "ResizePlugin"
+
+        init {
+            System.loadLibrary("VisionCameraResizePlugin")
+        }
     }
 
     private external fun initHybrid(): HybridData
