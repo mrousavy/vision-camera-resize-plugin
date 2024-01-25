@@ -39,8 +39,7 @@ struct FrameBuffer {
   global_ref<JByteBuffer> buffer;
 
   uint8_t* data();
-  int getRowStride();
-  int getPixelStride();
+  int bytesPerRow();
 };
 
 struct ResizePlugin : public HybridClass<ResizePlugin> {

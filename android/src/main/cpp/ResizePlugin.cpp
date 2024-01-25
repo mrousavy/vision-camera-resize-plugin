@@ -50,12 +50,9 @@ int getBytesPerPixel(PixelFormat pixelFormat, DataType type) {
   return getChannelCount(pixelFormat) * getBytesPerChannel(type);
 }
 
-int FrameBuffer::getPixelStride() {
-  return getBytesPerPixel(pixelFormat, dataType);
-}
-
-int FrameBuffer::getRowStride() {
-  return width * getPixelStride();
+int FrameBuffer::bytesPerRow() {
+  size_t bytesPerPixel = getBytesPerPixel(pixelFormat, dataType);
+  return width * bytesPerPixel;
 }
 
 uint8_t* FrameBuffer::data() {
@@ -141,8 +138,8 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
       .buffer = _resizeBuffer,
   };
 
-  int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.getRowStride(),
-                                     destination.data(), destination.getRowStride(),
+  int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.bytesPerRow(),
+                                     destination.data(), destination.bytesPerRow(),
                                      x, y,
                                      frameBuffer.width, frameBuffer.height,
                                      width, height,
@@ -183,25 +180,25 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
       // do nothing, we're already in ARGB
       return frameBuffer;
     case RGB:
-      error = libyuv::ARGBToRGB24(frameBuffer.data(), frameBuffer.getPixelStride(),
-                                  destination.data(), destination.getPixelStride(),
+      error = libyuv::ARGBToRGB24(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                  destination.data(), destination.bytesPerRow(),
                                   destination.width, destination.height);
       break;
     case BGR:
       throw std::runtime_error("BGR is not supported on Android!");
     case RGBA:
-      error = libyuv::ARGBToRGBA(frameBuffer.data(), frameBuffer.getPixelStride(),
-                                 destination.data(), destination.getPixelStride(),
+      error = libyuv::ARGBToRGBA(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                 destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
     case BGRA:
-      error = libyuv::ARGBToBGRA(frameBuffer.data(), frameBuffer.getPixelStride(),
-                                 destination.data(), destination.getPixelStride(),
+      error = libyuv::ARGBToBGRA(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                 destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
     case ABGR:
-      error = libyuv::ARGBToABGR(frameBuffer.data(), frameBuffer.getPixelStride(),
-                                 destination.data(), destination.getPixelStride(),
+      error = libyuv::ARGBToABGR(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                 destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
   }
