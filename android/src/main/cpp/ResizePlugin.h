@@ -15,6 +15,7 @@
 namespace vision {
 
 using namespace facebook;
+using namespace jni;
 
 enum PixelFormat {
   RGB,
@@ -30,26 +31,44 @@ enum DataType {
   FLOAT32
 };
 
-struct ResizePlugin : public jni::HybridClass<ResizePlugin> {
+struct FrameBuffer {
+  int width;
+  int height;
+  PixelFormat pixelFormat;
+  DataType dataType;
+  global_ref<JByteBuffer> buffer;
+
+  uint8_t* data();
+  int getRowStride();
+  int getPixelStride();
+};
+
+struct ResizePlugin : public HybridClass<ResizePlugin> {
 public:
   static auto constexpr kJavaDescriptor = "Lcom/visioncameraresizeplugin/ResizePlugin;";
   static void registerNatives();
 
 private:
-  explicit ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis);
+  explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
-  jni::alias_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image,
-                                          int cropX, int cropY,
-                                          int targetWidth, int targetHeight,
-                                          int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+  alias_ref<JByteBuffer> resize(alias_ref<JImage> image,
+                                int cropX, int cropY,
+                                int targetWidth, int targetHeight,
+                                int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+
+  FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
+  FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
 
 private:
   static auto constexpr TAG = "ResizePlugin";
   friend HybridBase;
-  jni::global_ref<javaobject> _javaThis;
-  jni::global_ref<JByteBuffer> _argbBuffer;
+  global_ref<javaobject> _javaThis;
+  // YUV (?x?) -> ARGB (?x?)
+  global_ref<JByteBuffer> _argbBuffer;
+  // ARGB (?x?) -> !!!! (?x?)
+  global_ref<JByteBuffer> _customFormatBuffer;
 
-  static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> javaThis);
+  static local_ref<jhybriddata> initHybrid(alias_ref<jhybridobject> javaThis);
 };
 
 } // namespace vision
