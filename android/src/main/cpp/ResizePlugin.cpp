@@ -87,6 +87,7 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
     jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
     _argbBuffer = jni::make_global(buffer);
   }
+  _argbBuffer->rewind();
   FrameBuffer destination = {
       .width = width,
       .height = height,
@@ -135,6 +136,7 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
     jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
     _resizeBuffer = jni::make_global(buffer);
   }
+  _resizeBuffer->rewind();
   FrameBuffer destination = {
       .width = width,
       .height = height,
@@ -171,6 +173,7 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
     jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(targetBufferSize);
     _customFormatBuffer = jni::make_global(buffer);
   }
+  _customFormatBuffer->rewind();
   FrameBuffer destination = {
       .width = frameBuffer.width,
       .height = frameBuffer.height,
@@ -229,6 +232,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
     jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(targetSize);
     _customTypeBuffer = jni::make_global(buffer);
   }
+  _customTypeBuffer->rewind();
   FrameBuffer destination = {
     .width = frameBuffer.width,
     .height = frameBuffer.height,
@@ -265,15 +269,19 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
 
   // 1. Convert from YUV -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);
+  result.buffer->rewind();
 
   // 2. Crop ARGB
   result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
+  result.buffer->rewind();
 
   // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
+  result.buffer->rewind();
 
   // 4. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
+  result.buffer->rewind();
 
   return result.buffer;
 }
