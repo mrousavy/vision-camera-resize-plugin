@@ -53,7 +53,6 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
                 if (targetXDouble != null && targetYDouble != null) {
                     targetX = targetXDouble.toInt()
                     targetY = targetYDouble.toInt()
-                    throw Error("Cropping is not yet supported on Android!")
                 } else {
                     // by default, do a center crop
                     targetX = (frame.width / 2) - (targetWidth / 2)
