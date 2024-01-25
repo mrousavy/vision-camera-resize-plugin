@@ -57,7 +57,9 @@ private:
                                 int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
+  FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
+  FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
 
 private:
   static auto constexpr TAG = "ResizePlugin";
@@ -65,6 +67,8 @@ private:
   global_ref<javaobject> _javaThis;
   // YUV (?x?) -> ARGB (?x?)
   global_ref<JByteBuffer> _argbBuffer;
+  // ARGB (?x?) -> ARGB (!x!)
+  global_ref<JByteBuffer> _resizeBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
 

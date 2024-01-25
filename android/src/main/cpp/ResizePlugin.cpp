@@ -88,27 +88,56 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
     jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
     _argbBuffer = jni::make_global(buffer);
   }
-  auto destination = _argbBuffer->getDirectBytes();
+  FrameBuffer destination = {
+      .width = width,
+      .height = height,
+      .pixelFormat = PixelFormat::ARGB,
+      .dataType = DataType::UINT8,
+      .buffer = _argbBuffer,
+  };
 
   // 1. Convert from YUV -> ARGB
   int result = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
                                         uBuffer->getDirectBytes(), uPlane->getRowStride(),
                                         vBuffer->getDirectBytes(), vPlane->getRowStride(),
                                         uvPixelStride,
-                                        destination, width * channels * channelSize,
+                                        destination.data(), width * channels * channelSize,
                                         width, height);
 
   if (result != 0) {
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(result));
   }
 
-  return (FrameBuffer) {
-    .width = width,
-    .height = height,
-    .pixelFormat = PixelFormat::ARGB,
-    .dataType = DataType::UINT8,
-    .buffer = _argbBuffer,
+  return destination;
+}
+
+FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
+                                         int x, int y,
+                                         int width, int height) {
+  size_t channels = getChannelCount(PixelFormat::ARGB);
+  size_t channelSize = getBytesPerChannel(DataType::UINT8);
+  size_t argbSize = width * height * channels * channelSize;
+  if (_resizeBuffer == nullptr || _resizeBuffer->getDirectSize() != argbSize) {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ARGB Resize ByteBuffer...", argbSize);
+    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
+    _resizeBuffer = jni::make_global(buffer);
+  }
+  FrameBuffer destination = {
+      .width = width,
+      .height = height,
+      .pixelFormat = PixelFormat::ARGB,
+      .dataType = DataType::UINT8,
+      .buffer = _resizeBuffer,
   };
+
+  libyuv::ConvertToARGB(frameBuffer.data(), 1,
+                        destination.data(), destination.getRowStride(),
+                        x, y,
+                        frameBuffer.width, frameBuffer.height,
+                        width, height,
+                        libyuv::kRotate0, 0);
+
+  return destination;
 }
 
 FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
@@ -168,6 +197,11 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
   return destination;
 }
 
+FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType) {
+  // TODO: Implement
+  return frameBuffer;
+}
+
 jni::alias_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
                                                       int cropX, int cropY,
                                                       int targetWidth, int targetHeight,
@@ -178,9 +212,14 @@ jni::alias_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
   // 1. Convert from YUV -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);
 
-  // 2. Convert from ARGB -> ????
+  // 2. Crop ARGB
+  result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
+
+  // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
 
+  // 4. Convert from data type to other data type
+  result = convertBufferToDataType(result, dataType);
 
   return result.buffer;
 }
