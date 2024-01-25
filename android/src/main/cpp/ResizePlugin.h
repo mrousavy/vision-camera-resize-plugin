@@ -23,6 +23,7 @@ private:
 
 private:
   friend HybridBase;
+  jni::global_ref<javaobject> _javaThis;
 
   static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> javaThis);
 };

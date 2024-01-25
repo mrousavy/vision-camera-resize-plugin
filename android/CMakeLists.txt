@@ -10,6 +10,9 @@ set (CMAKE_CXX_STANDARD 17)
 find_package(fbjni REQUIRED CONFIG)
 find_library(LOG_LIB log)
 
+# libyuv
+add_subdirectory(libyuv)
+
 add_library(${PACKAGE_NAME}            SHARED
             src/main/cpp/ResizePlugin.cpp
             src/main/cpp/VisionCameraResizePlugin.cpp
@@ -19,6 +22,7 @@ add_library(${PACKAGE_NAME}            SHARED
 target_include_directories(
             ${PACKAGE_NAME}            PRIVATE
             src/main/cpp
+            libyuv/include
 )
 
 target_link_libraries(
@@ -26,4 +30,5 @@ target_link_libraries(
         ${LOG_LIB}                          # <-- Logcat logger
         android                             # <-- Android JNI core
         fbjni::fbjni                        # <-- fbjni
+        yuv
 )

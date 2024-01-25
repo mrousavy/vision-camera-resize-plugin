@@ -17,6 +17,10 @@ void ResizePlugin::registerNatives() {
   });
 }
 
+ResizePlugin::ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis) {
+  _javaThis = jni::make_global(javaThis);
+}
+
 jni::local_ref<ResizePlugin::jhybriddata> ResizePlugin::initHybrid(jni::alias_ref<jhybridobject> javaThis) {
   return makeCxxInstance(javaThis);
 }
