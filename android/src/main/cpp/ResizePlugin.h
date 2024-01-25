@@ -5,9 +5,12 @@
 #pragma once
 
 #include <fbjni/fbjni.h>
+#include <fbjni/ByteBuffer.h>
 #include <jni.h>
 #include <memory>
 #include <string>
+
+#include "JImage.h"
 
 namespace vision {
 
@@ -20,6 +23,8 @@ public:
 
 private:
   explicit ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis);
+
+  jni::local_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image);
 
 private:
   friend HybridBase;

@@ -15,6 +15,8 @@ add_subdirectory(libyuv)
 
 add_library(${PACKAGE_NAME}            SHARED
             src/main/cpp/ResizePlugin.cpp
+            src/main/cpp/JImage.cpp
+            src/main/cpp/JImagePlane.cpp
             src/main/cpp/VisionCameraResizePlugin.cpp
 )
 
@@ -30,5 +32,5 @@ target_link_libraries(
         ${LOG_LIB}                          # <-- Logcat logger
         android                             # <-- Android JNI core
         fbjni::fbjni                        # <-- fbjni
-        yuv
+        yuv                                 # <-- libyuv
 )

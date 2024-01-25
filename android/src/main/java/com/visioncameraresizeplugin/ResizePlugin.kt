@@ -1,7 +1,6 @@
 package com.visioncameraresizeplugin
 
-import android.graphics.Bitmap
-import android.graphics.ImageFormat
+import android.media.Image
 import android.util.Log
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
@@ -10,26 +9,12 @@ import com.mrousavy.camera.frameprocessor.Frame
 import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
-import io.github.crow_misia.libyuv.AbgrBuffer
-import io.github.crow_misia.libyuv.ArgbBuffer
-import io.github.crow_misia.libyuv.BgraBuffer
-import io.github.crow_misia.libyuv.FilterMode
-import io.github.crow_misia.libyuv.I420Buffer
-import io.github.crow_misia.libyuv.Plane
-import io.github.crow_misia.libyuv.Rgb24Buffer
-import io.github.crow_misia.libyuv.RgbaBuffer
-import io.github.crow_misia.libyuv.ext.ImageExt.toI420Buffer
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     @DoNotStrip
     @Keep
     private val mHybridData: HybridData
-
-    private var _resizeBuffer: I420Buffer? = null
-    private var _destinationArray: SharedArray? = null
-    private var _floatDestinationArray: SharedArray? = null
 
     companion object {
         private const val TAG = "ResizePlugin"
@@ -39,13 +24,14 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         }
     }
 
-    private external fun initHybrid(): HybridData
-
     init {
         mHybridData = initHybrid()
     }
 
-    override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any? {
+    private external fun initHybrid(): HybridData
+    private external fun resize(image: Image): ByteBuffer
+
+    override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
         if (params == null) {
             throw Error("Options cannot be null!")
         }
@@ -77,6 +63,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             }
         }
 
-        return null
+        val resized = resize(frame.image)
+        return SharedArray(proxy, resized)
     }
 }
