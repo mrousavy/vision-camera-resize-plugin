@@ -11,8 +11,7 @@ find_package(fbjni REQUIRED CONFIG)
 find_library(LOG_LIB log)
 
 # libyuv
-get_filename_component(PARENT_DIR ../ ABSOLUTE)
-add_subdirectory(${PARENT_DIR}/libyuv libyuv)
+add_subdirectory(../libyuv libyuv)
 
 add_library(${PACKAGE_NAME}            SHARED
             src/main/cpp/ResizePlugin.cpp
@@ -25,7 +24,7 @@ add_library(${PACKAGE_NAME}            SHARED
 target_include_directories(
             ${PACKAGE_NAME}            PRIVATE
             src/main/cpp
-            "${PARENT_DIR}/libyuv/include"
+            ../libyuv/include
 )
 
 target_link_libraries(
