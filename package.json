@@ -10,7 +10,11 @@
   "files": [
     "src",
     "lib",
-    "android",
+    "android/src",
+    "android/libyuv",
+    "android/build.gradle",
+    "android/CMakeLists.txt",
+    "android/gradle.properties",
     "ios",
     "*.podspec",
     "!ios/build",
@@ -27,7 +31,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build",
+    "prepare": "git submodule update --init --recursive && bob build",
+    "update-submodule": "git submodule update --remote --merge",
     "release": "release-it"
   },
   "keywords": [
