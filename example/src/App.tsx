@@ -25,8 +25,8 @@ export default function App() {
 
     const start = performance.now();
 
-    const targetWidth = 100;
-    const targetHeight = 100;
+    const targetWidth = 250;
+    const targetHeight = 250;
 
     const result = plugin.resize(frame, {
       size: {
@@ -36,7 +36,7 @@ export default function App() {
         width: targetWidth,
         height: targetHeight,
       },
-      pixelFormat: 'argb',
+      pixelFormat: 'rgba',
       dataType: 'uint8',
     });
     console.log(

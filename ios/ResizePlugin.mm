@@ -383,10 +383,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _customTypeBuffer;
 }
 
-- (UIImage*)bufferToImage {
-  // Converts the ARGB Buffer (step 2) to a UIImage
-  FrameBuffer* buffer = _argbBuffer;
-  
+- (UIImage*)bufferToImage:(FrameBuffer*)buffer {
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
   CGContextRef bitmapContext = CGBitmapContextCreate(buffer.sharedArray.data, buffer.width, buffer.height, 8, buffer.width * 4, colorSpace, kCGImageAlphaNoneSkipLast);
   CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
@@ -461,11 +458,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   result = [self convertARGB:result
                           to:pixelFormat];
   
+  UIImage* image = [self bufferToImage:result];
+  
   // 5. Convert UINT8 -> ??? type
   result = [self convertInt8Buffer:result
                         toDataType:dataType];
-  
-  UIImage* image = [self bufferToImage];
   
   // 6. Return to JS
   return result.sharedArray;
