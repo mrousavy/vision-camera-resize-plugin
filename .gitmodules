@@ -1,0 +1,3 @@
+[submodule "libyuv"]
+	path = libyuv
+	url = https://android.googlesource.com/platform/external/libyuv/
