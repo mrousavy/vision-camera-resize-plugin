@@ -383,12 +383,19 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _customTypeBuffer;
 }
 
+// Used only for debugging/inspecting the Image.
 - (UIImage*)bufferToImage:(FrameBuffer*)buffer {
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-  CGContextRef bitmapContext = CGBitmapContextCreate(buffer.sharedArray.data, buffer.width, buffer.height, 8, buffer.width * 4, colorSpace, kCGImageAlphaNoneSkipLast);
+  CGContextRef bitmapContext = CGBitmapContextCreate(buffer.sharedArray.data,
+                                                     buffer.width,
+                                                     buffer.height,
+                                                     buffer.bytesPerChannel * 8, // bit per component
+                                                     buffer.width * buffer.bytesPerPixel, // bytes per row
+                                                     colorSpace,
+                                                     kCGImageAlphaNoneSkipLast);
   CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
 
-  UIImage *image = [UIImage imageWithCGImage:cgImage];
+  UIImage* image = [UIImage imageWithCGImage:cgImage];
 
   CGImageRelease(cgImage);
   CGContextRelease(bitmapContext);
@@ -457,8 +464,6 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // 4. Convert ARGB -> ??? format
   result = [self convertARGB:result
                           to:pixelFormat];
-  
-  UIImage* image = [self bufferToImage:result];
   
   // 5. Convert UINT8 -> ??? type
   result = [self convertInt8Buffer:result
