@@ -92,7 +92,6 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   if (_argbBuffer == nullptr || _argbBuffer->getDirectSize() != argbSize) {
     _argbBuffer = allocateBuffer(argbSize, "_argbBuffer");
   }
-  _argbBuffer->rewind();
   FrameBuffer destination = {
       .width = width,
       .height = height,
@@ -139,7 +138,6 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
   if (_resizeBuffer == nullptr || _resizeBuffer->getDirectSize() != argbSize) {
     _resizeBuffer = allocateBuffer(argbSize, "_resizeBuffer");
   }
-  _resizeBuffer->rewind();
   FrameBuffer destination = {
       .width = width,
       .height = height,
@@ -174,7 +172,6 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
   if (_customFormatBuffer == nullptr || _customFormatBuffer->getDirectSize() != targetBufferSize) {
     _customFormatBuffer = allocateBuffer(targetBufferSize, "_customFormatBuffer");
   }
-  _customFormatBuffer->rewind();
   FrameBuffer destination = {
       .width = frameBuffer.width,
       .height = frameBuffer.height,
@@ -231,7 +228,6 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   if (_customTypeBuffer == nullptr || _customTypeBuffer->getDirectSize() != targetSize) {
     _customTypeBuffer = allocateBuffer(targetSize, "_customTypeBuffer");
   }
-  _customTypeBuffer->rewind();
   size_t size = frameBuffer.buffer->getDirectSize();
   FrameBuffer destination = {
     .width = frameBuffer.width,
@@ -269,19 +265,15 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
 
   // 1. Convert from YUV -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);
-  result.buffer->rewind();
 
   // 2. Crop ARGB
   result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
-  result.buffer->rewind();
 
   // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
-  result.buffer->rewind();
 
   // 4. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
-  result.buffer->rewind();
 
   return result.buffer;
 }
