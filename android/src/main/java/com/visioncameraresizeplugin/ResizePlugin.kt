@@ -11,6 +11,7 @@ import com.mrousavy.camera.frameprocessor.SharedArray
 import com.mrousavy.camera.frameprocessor.VisionCameraProxy
 import java.nio.ByteBuffer
 
+@Suppress("KotlinJniMissingFunction") // We're using fbjni
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
     @DoNotStrip
     @Keep
