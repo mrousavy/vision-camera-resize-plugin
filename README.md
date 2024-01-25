@@ -23,6 +23,8 @@ const frameProcessor = useFrameProcessor((frame) => {
 
   const resized = resize(frame, {
     size: {
+      x: 10,
+      y: 10,
       width: 192,
       height: 192
     },
@@ -174,6 +176,9 @@ const frameProcessor = useFrameProcessor((frame) => {
 
   const data = resize(frame, {
     size: {
+      // center-crop
+      x: (frame.width / 2) - (320 / 2),
+      y: (frame.height / 2) - (320 / 2),
       width: 320,
       height: 320,
     },
@@ -195,6 +200,8 @@ I benchmarked vision-camera-resize-plugin on an iPhone 15 Pro, using the followi
 const start = performance.now()
 const result = resize(frame, {
   size: {
+    x: 0,
+    y: 0,
     width: 100,
     height: 100,
   },
