@@ -1,6 +1,6 @@
 # vision-camera-resize-plugin
 
-A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame Processor Plugin for fast and efficient Frame resizing, cropping and pixel-format conversion (YUV -> RGB) using GPU-acceleration and CPU-vector based operations.
+A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame Processor Plugin for fast and efficient Frame resizing, cropping and pixel-format conversion (YUV -> RGB) using GPU-acceleration, CPU-vector based operations and ARM NEON SIMD acceleration.
 
 ## Installation
 
