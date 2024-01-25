@@ -29,7 +29,10 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
 
     private external fun initHybrid(): HybridData
-    private external fun resize(image: Image): ByteBuffer
+    private external fun resize(image: Image,
+                                cropX: Int, cropY: Int,
+                                targetWidth: Int, targetHeight: Int,
+                                pixelFormat: Int, dataType: Int): ByteBuffer
 
     override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
         if (params == null) {
@@ -40,6 +43,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         var targetHeight = frame.height
         var targetX = 0
         var targetY = 0
+        var targetFormat = PixelFormat.ARGB
+        var targetType = DataType.UINT8
 
         val targetSize = params["size"] as? Map<*, *>
         if (targetSize != null) {
@@ -62,7 +67,60 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             }
         }
 
-        val resized = resize(frame.image)
+        val formatString = params["pixelFormat"] as? String
+        if (formatString != null) {
+            targetFormat = PixelFormat.fromString(formatString)
+            Log.i(TAG, "Target Format: $targetFormat")
+        }
+
+        val dataTypeString = params["dataType"] as? String
+        if (dataTypeString != null) {
+            targetType = DataType.fromString(dataTypeString)
+            Log.i(TAG, "Target DataType: $targetType")
+        }
+
+        val resized = resize(frame.image,
+                targetX, targetY,
+                targetWidth, targetHeight,
+                targetFormat.ordinal, targetType.ordinal)
         return SharedArray(proxy, resized)
+    }
+
+    private enum class PixelFormat {
+        RGB,
+        BGR,
+        ARGB,
+        RGBA,
+        BGRA,
+        ABGR;
+
+        companion object {
+            fun fromString(string: String): PixelFormat {
+                return when (string) {
+                    "rgb" -> RGB
+                    "rgba" -> RGBA
+                    "argb" -> ARGB
+                    "bgra" -> BGRA
+                    "bgr" -> BGR
+                    "abgr" -> ABGR
+                    else -> throw Error("Invalid PixelFormat! ($string)")
+                }
+            }
+        }
+    }
+
+    private enum class DataType {
+        UINT8,
+        FLOAT32;
+
+        companion object {
+            fun fromString(string: String): DataType {
+                return when (string) {
+                    "uint8" -> UINT8
+                    "float32" -> FLOAT32
+                    else -> throw Error("Invalid DataType! ($string)")
+                }
+            }
+        }
     }
 }

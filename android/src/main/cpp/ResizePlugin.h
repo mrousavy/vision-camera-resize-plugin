@@ -16,6 +16,20 @@ namespace vision {
 
 using namespace facebook;
 
+enum PixelFormat {
+  RGB,
+  BGR,
+  ARGB,
+  RGBA,
+  BGRA,
+  ABGR
+};
+
+enum DataType {
+  UINT8,
+  FLOAT32
+};
+
 struct ResizePlugin : public jni::HybridClass<ResizePlugin> {
 public:
   static auto constexpr kJavaDescriptor = "Lcom/visioncameraresizeplugin/ResizePlugin;";
@@ -24,7 +38,10 @@ public:
 private:
   explicit ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis);
 
-  jni::local_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image);
+  jni::local_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image,
+                                          int cropX, int cropY,
+                                          int targetWidth, int targetHeight,
+                                          int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
 private:
   friend HybridBase;

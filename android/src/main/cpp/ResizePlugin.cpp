@@ -24,9 +24,39 @@ ResizePlugin::ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis) {
   _javaThis = jni::make_global(javaThis);
 }
 
-jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image) {
-  int width = image->getWidth();
-  int height = image->getHeight();
+int getChannelCount(PixelFormat pixelFormat) {
+  switch (pixelFormat) {
+    case RGB:
+    case BGR:
+      return 3;
+    case ARGB:
+    case RGBA:
+    case BGRA:
+    case ABGR:
+      return 4;
+  }
+}
+
+int getBytesPerChannel(DataType type) {
+  switch (type) {
+    case UINT8:
+      return sizeof(uint8_t);
+    case FLOAT32:
+      return sizeof(float_t);
+  }
+}
+
+int getBytesPerPixel(PixelFormat pixelFormat, DataType type) {
+  return getChannelCount(pixelFormat) * getBytesPerChannel(type);
+}
+
+jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
+                                                      int cropX, int cropY,
+                                                      int targetWidth, int targetHeight,
+                                                      int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
+  PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
+  DataType dataType = static_cast<DataType>(dataTypeOrdinal);
+
   jni::local_ref<JArrayClass<JImagePlane>> planes = image->getPlanes();
 
   jni::local_ref<JImagePlane> yPlane = planes->getElement(0);
@@ -41,17 +71,17 @@ jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
     throw std::runtime_error("U and V planes do not have the same pixel stride! Are you sure this is a 4:2:0 YUV format?");
   }
 
-  size_t channels = 4; // ARGB
-  size_t channelSize = sizeof(uint8_t);
-  jni::local_ref<JByteBuffer> destinationBuffer = JByteBuffer::allocateDirect(width * height * channels * channelSize);
+  size_t channels = getChannelCount(PixelFormat::ARGB);
+  size_t channelSize = getBytesPerChannel(DataType::UINT8);
+  jni::local_ref<JByteBuffer> destinationBuffer = JByteBuffer::allocateDirect(targetWidth * targetHeight * channels * channelSize);
   auto destination = destinationBuffer->getDirectBytes();
 
   int result = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
                                         uBuffer->getDirectBytes(), uPlane->getRowStride(),
                                         vBuffer->getDirectBytes(), vPlane->getRowStride(),
                                         uvPixelStride,
-                                        destination, width * channels * channelSize,
-                                        width, height);
+                                        destination, targetWidth * channels * channelSize,
+                                        targetWidth, targetHeight);
 
   if (result != 0) {
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(result));
