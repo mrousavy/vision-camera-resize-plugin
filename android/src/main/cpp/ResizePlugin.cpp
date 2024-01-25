@@ -244,7 +244,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
       return frameBuffer;
     case FLOAT32: {
       float* floatData = reinterpret_cast<float*>(destination.data());
-      status = libyuv::ByteToFloat(frameBuffer.data(), floatData, 255.0f, frameBuffer.width);
+      status = libyuv::ByteToFloat(frameBuffer.data(), floatData, 1.0f / 255.0f, frameBuffer.width);
       break;
     }
   }
