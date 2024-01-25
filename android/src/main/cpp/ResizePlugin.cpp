@@ -43,7 +43,8 @@ jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
 
   size_t channels = 4; // ARGB
   size_t channelSize = sizeof(uint8_t);
-  uint8_t* destination = (uint8_t*) malloc(width * height * channels * channelSize);
+  jni::local_ref<JByteBuffer> destinationBuffer = JByteBuffer::allocateDirect(width * height * channels * channelSize);
+  auto destination = destinationBuffer->getDirectBytes();
 
   int result = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
                                         uBuffer->getDirectBytes(), uPlane->getRowStride(),
@@ -56,9 +57,7 @@ jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(result));
   }
 
-  free(destination);
-
-  return nullptr;
+  return destinationBuffer;
 }
 
 jni::local_ref<ResizePlugin::jhybriddata> ResizePlugin::initHybrid(jni::alias_ref<jhybridobject> javaThis) {
