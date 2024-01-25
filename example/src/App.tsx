@@ -25,10 +25,16 @@ export default function App() {
 
     const start = performance.now();
 
+    const targetWidth = 100;
+    const targetHeight = 100;
+
     const result = plugin.resize(frame, {
       size: {
-        width: 100,
-        height: 100,
+        // Center-crop
+        x: frame.width / 2 - targetWidth / 2,
+        y: frame.height / 2 - targetHeight / 2,
+        width: targetWidth,
+        height: targetHeight,
       },
       pixelFormat: 'argb',
       dataType: 'uint8',

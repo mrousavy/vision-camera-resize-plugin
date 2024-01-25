@@ -20,6 +20,8 @@
 @interface ResizePlugin : FrameProcessorPlugin
 @end
 
+#define AdvancePtr( _ptr, _bytes) (__typeof__(_ptr))((uintptr_t)(_ptr) + (size_t)(_bytes))
+
 @implementation ResizePlugin {
   // 1. ??? (?x?) -> ARGB (?x?)
   FrameBuffer* _argbBuffer;
@@ -27,7 +29,7 @@
   FrameBuffer* _resizeBuffer;
   // 3. ARGB (!x!) -> !!!! (!x!)
   FrameBuffer* _convertBuffer;
-  // 4. uint8 -> other type (e.g. float32) if needed
+  // 3. uint8 -> other type (e.g. float32) if needed
   FrameBuffer* _customTypeBuffer;
   
   // Cache
@@ -281,15 +283,19 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 }
 
 - (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer
-                   toWidth:(size_t)width
-                  toHeight:(size_t)height {
-  if (buffer.width == width && buffer.height == height) {
+                    toArea:(CGRect)rect {
+  CGFloat width = rect.size.width;
+  CGFloat height = rect.size.height;
+  CGFloat x = rect.origin.x;
+  CGFloat y = rect.origin.y;
+  
+  if (buffer.width == rect.size.width && buffer.height == rect.size.height && rect.origin.x == 0 && rect.origin.y == 0) {
     // We are already in the target size.
-    NSLog(@"Skipping resize, buffer is already desired size (%zu x %zu)...", width, height);
+    NSLog(@"Skipping resize, buffer is already desired size (%f x %f)...", width, height);
     return buffer;
   }
 
-  NSLog(@"Resizing ARGB_8 Frame to %zu x %zu...", width, height);
+  NSLog(@"Resizing ARGB_8 Frame to %f x %f...", width, height);
 
   if (_resizeBuffer == nil || _resizeBuffer.width != width || _resizeBuffer.height != height) {
     _resizeBuffer = [[FrameBuffer alloc] initWithWidth:width
@@ -314,7 +320,17 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       NSLog(@"Cannot allocate _tempResizeBuffer, size is unknown!");
     }
   }
-
+  
+  // Crop
+  vImage_Buffer cropped = (vImage_Buffer) {
+      .data = AdvancePtr(source->data, y * source->rowBytes + x * buffer.bytesPerPixel),
+      .height = (unsigned long) height,
+      .width = (unsigned long) width,
+      .rowBytes = source->rowBytes
+  };
+  source = &cropped;
+  
+  // Resize
   vImage_Error error = vImageScale_ARGB8888(source, destination, _tempResizeBuffer, kvImageNoFlags);
   if (error != kvImageNoError) {
     [NSException raise:@"Resize Error" format:@"Failed to resize ARGB buffer! Error: %zu", error];
@@ -370,13 +386,17 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 - (id)callback:(Frame*)frame withArguments:(NSDictionary*)arguments {
 
   // 1. Parse inputs
-  size_t targetWidth = frame.width;
-  size_t targetHeight = frame.height;
+  double targetWidth = (double) frame.width;
+  double targetHeight = (double) frame.height;
+  double targetX = 0;
+  double targetY = 0;
   NSDictionary* targetSize = arguments[@"size"];
   if (targetSize != nil) {
-    targetWidth = ((NSNumber*) targetSize[@"width"]).intValue;
-    targetHeight = ((NSNumber*) targetSize[@"height"]).intValue;
-    NSLog(@"ResizePlugin: Target size: %zu x %zu", targetWidth, targetHeight);
+    targetWidth = ((NSNumber*) targetSize[@"width"]).doubleValue;
+    targetHeight = ((NSNumber*) targetSize[@"height"]).doubleValue;
+    targetX = ((NSNumber*) targetSize[@"x"]).doubleValue;
+    targetY = ((NSNumber*) targetSize[@"y"]).doubleValue;
+    NSLog(@"ResizePlugin: Target size: %f x %f, at (%f, %f)", targetWidth, targetHeight, targetX, targetY);
   } else {
     NSLog(@"ResizePlugin: No custom target size supplied.");
   }
@@ -399,7 +419,6 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     NSLog(@"ResizePlugin: No custom data type supplied.");
   }
   
-  // TODO: Init
   FrameBuffer* result = nil;
   
   // 2. Convert from source pixel format (YUV) to a pixel format we can work with (RGB)
@@ -417,9 +436,9 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   }
     
   // 3. Resize
+  CGRect targetRect = CGRectMake(targetX, targetX, targetWidth, targetHeight);
   result = [self resizeARGB:result
-                    toWidth:targetWidth
-                   toHeight:targetHeight];
+                     toArea:targetRect];
   
   // 4. Convert ARGB -> ??? format
   result = [self convertARGB:result

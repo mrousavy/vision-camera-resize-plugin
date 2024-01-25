@@ -13,7 +13,21 @@ interface Options<T extends DataType> {
    * Scale the image to the given target size.
    */
   size?: {
+    /**
+     * The origin X of the Frame used for cropping. If not set, `0` is assumed.
+     */
+    x: number;
+    /**
+     * The origin Y of the Frame used for cropping. If not set, `0` is assumed.
+     */
+    y: number;
+    /**
+     * The width to resize the Frame to.
+     */
     width: number;
+    /**
+     * The height to resize the Frame to.
+     */
     height: number;
   };
   /**
