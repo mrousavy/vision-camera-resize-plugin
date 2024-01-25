@@ -232,6 +232,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
     _customTypeBuffer = allocateBuffer(targetSize, "_customTypeBuffer");
   }
   _customTypeBuffer->rewind();
+  size_t size = frameBuffer.buffer->getDirectSize();
   FrameBuffer destination = {
     .width = frameBuffer.width,
     .height = frameBuffer.height,
@@ -247,7 +248,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
       return frameBuffer;
     case FLOAT32: {
       float* floatData = reinterpret_cast<float*>(destination.data());
-      status = libyuv::ByteToFloat(frameBuffer.data(), floatData, 1.0f / 255.0f, frameBuffer.width);
+      status = libyuv::ByteToFloat(frameBuffer.data(), floatData, 1.0f / 255.0f, size);
       break;
     }
   }
