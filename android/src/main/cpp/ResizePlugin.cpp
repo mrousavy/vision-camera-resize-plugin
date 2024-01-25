@@ -50,7 +50,7 @@ int getBytesPerPixel(PixelFormat pixelFormat, DataType type) {
   return getChannelCount(pixelFormat) * getBytesPerChannel(type);
 }
 
-jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
+jni::alias_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
                                                       int cropX, int cropY,
                                                       int targetWidth, int targetHeight,
                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
@@ -73,8 +73,13 @@ jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
-  jni::local_ref<JByteBuffer> destinationBuffer = JByteBuffer::allocateDirect(targetWidth * targetHeight * channels * channelSize);
-  auto destination = destinationBuffer->getDirectBytes();
+  size_t argbSize = targetWidth * targetHeight * channels * channelSize;
+  if (_argbBuffer == nullptr || _argbBuffer->getDirectSize() != argbSize) {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ARGB ByteBuffer...", argbSize);
+    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
+    _argbBuffer = jni::make_global(buffer);
+  }
+  auto destination = _argbBuffer->getDirectBytes();
 
   int result = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
                                         uBuffer->getDirectBytes(), uPlane->getRowStride(),
@@ -87,7 +92,7 @@ jni::local_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> ima
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(result));
   }
 
-  return destinationBuffer;
+  return _argbBuffer;
 }
 
 jni::local_ref<ResizePlugin::jhybriddata> ResizePlugin::initHybrid(jni::alias_ref<jhybridobject> javaThis) {

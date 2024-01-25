@@ -87,6 +87,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
 
     private enum class PixelFormat {
+        // Integer-Values (ordinals) to be in sync with ResizePlugin.h
         RGB,
         BGR,
         ARGB,
@@ -110,6 +111,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
 
     private enum class DataType {
+        // Integer-Values (ordinals) to be in sync with ResizePlugin.h
         UINT8,
         FLOAT32;
 

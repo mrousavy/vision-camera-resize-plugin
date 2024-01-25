@@ -38,14 +38,16 @@ public:
 private:
   explicit ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis);
 
-  jni::local_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image,
+  jni::alias_ref<jni::JByteBuffer> resize(jni::alias_ref<JImage> image,
                                           int cropX, int cropY,
                                           int targetWidth, int targetHeight,
                                           int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
 private:
+  static auto constexpr TAG = "ResizePlugin";
   friend HybridBase;
   jni::global_ref<javaobject> _javaThis;
+  jni::global_ref<JByteBuffer> _argbBuffer;
 
   static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> javaThis);
 };
