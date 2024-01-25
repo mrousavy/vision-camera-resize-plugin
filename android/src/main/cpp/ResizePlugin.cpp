@@ -117,6 +117,11 @@ std::string rectToString(int x, int y, int width, int height) {
 FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
                                          int x, int y,
                                          int width, int height) {
+  if (width == frameBuffer.width && height == frameBuffer.height) {
+    // already in correct size.
+    return frameBuffer;
+  }
+
   auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
   auto targetString = rectToString(x, y, width, height);
   __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping [%s] ARGB buffer to [%s]...",
@@ -152,12 +157,12 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
 }
 
 FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
-  __android_log_print(ANDROID_LOG_INFO, TAG, "Converting ARGB Buffer to Pixel Format %zu...", pixelFormat);
-
   if (frameBuffer.pixelFormat == pixelFormat) {
     // Already in the correct format.
     return frameBuffer;
   }
+
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Converting ARGB Buffer to Pixel Format %zu...", pixelFormat);
 
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat, frameBuffer.dataType);
   size_t targetBufferSize = frameBuffer.width * frameBuffer.height * bytesPerPixel;
@@ -211,8 +216,42 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
 }
 
 FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType) {
+  if (frameBuffer.dataType == dataType) {
+    // Already in correct data-type
+    return frameBuffer;
+  }
+
   __android_log_print(ANDROID_LOG_INFO, TAG, "Converting ARGB Buffer to Data Type %zu...", dataType);
-  // TODO: Implement
+
+  size_t targetSize = frameBuffer.width * frameBuffer.height * getBytesPerPixel(frameBuffer.pixelFormat, dataType);
+  if (_customTypeBuffer == nullptr || _customTypeBuffer->getDirectSize() != targetSize) {
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ByteBuffer with custom DataType...", targetSize);
+    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(targetSize);
+    _customTypeBuffer = jni::make_global(buffer);
+  }
+  FrameBuffer destination = {
+    .width = frameBuffer.width,
+    .height = frameBuffer.height,
+    .pixelFormat = frameBuffer.pixelFormat,
+    .dataType = dataType,
+    .buffer = _customTypeBuffer,
+  };
+
+  switch (dataType) {
+    case UINT8:
+      // it's already uint8
+      return frameBuffer;
+    case FLOAT32: {
+      size_t currentSize = frameBuffer.buffer->getDirectSize();
+      uint8_t* byteData = frameBuffer.data();
+      float* floatData = reinterpret_cast<float*>(destination.data());
+      for (size_t i = 0; i < currentSize; i++) {
+        floatData[i] = static_cast<float>(byteData[i]) / 255.0f;
+      }
+      break;
+    }
+  }
+
   return frameBuffer;
 }
 

@@ -70,6 +70,8 @@ private:
   global_ref<JByteBuffer> _resizeBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
+  // Custom Data Type (e.g. float32)
+  global_ref<JByteBuffer> _customTypeBuffer;
 
   static local_ref<jhybriddata> initHybrid(alias_ref<jhybridobject> javaThis);
 };
