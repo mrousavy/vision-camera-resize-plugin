@@ -41,6 +41,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     private fun getCachedResizeBuffer(width: Int, height: Int): I420Buffer {
         if (_resizeBuffer == null || _resizeBuffer!!.width != width || _resizeBuffer!!.height != height) {
             Log.i(TAG, "Allocating _resizeBuffer... (size: ${width}x${height})")
+            _resizeBuffer?.close()
             _resizeBuffer = I420Buffer.allocate(width, height)
         }
         return _resizeBuffer!!
@@ -84,6 +85,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
         var targetWidth = frame.width
         var targetHeight = frame.height
+        var targetX = 0
+        var targetY = 0
         var targetFormat = RGBFormat.ARGB
         var targetType = DataType.UINT8
 
@@ -91,9 +94,19 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         if (targetSize != null) {
             val targetWidthDouble = targetSize["width"] as? Double
             val targetHeightDouble = targetSize["height"] as? Double
+            val targetXDouble = targetSize["x"] as? Double
+            val targetYDouble = targetSize["y"] as? Double
             if (targetWidthDouble != null && targetHeightDouble != null) {
                 targetWidth = targetWidthDouble.toInt()
                 targetHeight = targetHeightDouble.toInt()
+                if (targetXDouble != null && targetYDouble != null) {
+                    targetX = targetXDouble.toInt()
+                    targetY = targetYDouble.toInt()
+                } else {
+                    // by default, do a center crop
+                    targetX = (frame.width / 2) - (targetWidth / 2)
+                    targetY = (frame.height / 2) - (targetHeight / 2)
+                }
                 Log.i(TAG, "Target size: $targetWidth x $targetHeight")
             }
         }
