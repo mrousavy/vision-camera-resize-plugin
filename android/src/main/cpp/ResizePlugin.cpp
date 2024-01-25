@@ -237,19 +237,20 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
     .buffer = _customTypeBuffer,
   };
 
+  int status = 0;
   switch (dataType) {
     case UINT8:
       // it's already uint8
       return frameBuffer;
     case FLOAT32: {
-      size_t currentSize = frameBuffer.buffer->getDirectSize();
-      uint8_t* byteData = frameBuffer.data();
       float* floatData = reinterpret_cast<float*>(destination.data());
-      for (size_t i = 0; i < currentSize; i++) {
-        floatData[i] = static_cast<float>(byteData[i]) / 255.0f;
-      }
+      status = libyuv::ByteToFloat(frameBuffer.data(), floatData, 255.0f, frameBuffer.width);
       break;
     }
+  }
+
+  if (status != 0) {
+    throw std::runtime_error("Failed to convert Buffer to target Data Type! Error: " + std::to_string(status));
   }
 
   return frameBuffer;
