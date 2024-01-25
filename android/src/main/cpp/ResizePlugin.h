@@ -60,6 +60,8 @@ private:
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
 
+  global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
+
 private:
   static auto constexpr TAG = "ResizePlugin";
   friend HybridBase;

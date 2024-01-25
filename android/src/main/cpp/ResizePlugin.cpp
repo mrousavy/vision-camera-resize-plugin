@@ -59,6 +59,13 @@ uint8_t* FrameBuffer::data() {
   return buffer->getDirectBytes();
 }
 
+global_ref<JByteBuffer> ResizePlugin::allocateBuffer(size_t size, std::string debugName) {
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %s Buffer with size %zu...", debugName.c_str(), size);
+  local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(size);
+  buffer->order(JByteOrder::nativeOrder());
+  return make_global(buffer);
+}
+
 FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   __android_log_write(ANDROID_LOG_INFO, TAG, "Converting YUV 4:2:0 -> ARGB 8888...");
 
@@ -83,9 +90,7 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t argbSize = width * height * channels * channelSize;
   if (_argbBuffer == nullptr || _argbBuffer->getDirectSize() != argbSize) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ARGB ByteBuffer...", argbSize);
-    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
-    _argbBuffer = jni::make_global(buffer);
+    _argbBuffer = allocateBuffer(argbSize, "_argbBuffer");
   }
   _argbBuffer->rewind();
   FrameBuffer destination = {
@@ -132,9 +137,7 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t argbSize = width * height * channels * channelSize;
   if (_resizeBuffer == nullptr || _resizeBuffer->getDirectSize() != argbSize) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ARGB Resize ByteBuffer...", argbSize);
-    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(argbSize);
-    _resizeBuffer = jni::make_global(buffer);
+    _resizeBuffer = allocateBuffer(argbSize, "_resizeBuffer");
   }
   _resizeBuffer->rewind();
   FrameBuffer destination = {
@@ -169,9 +172,7 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat, frameBuffer.dataType);
   size_t targetBufferSize = frameBuffer.width * frameBuffer.height * bytesPerPixel;
   if (_customFormatBuffer == nullptr || _customFormatBuffer->getDirectSize() != targetBufferSize) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ByteBuffer with custom Format...", targetBufferSize);
-    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(targetBufferSize);
-    _customFormatBuffer = jni::make_global(buffer);
+    _customFormatBuffer = allocateBuffer(targetBufferSize, "_customFormatBuffer");
   }
   _customFormatBuffer->rewind();
   FrameBuffer destination = {
@@ -228,9 +229,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
 
   size_t targetSize = frameBuffer.width * frameBuffer.height * getBytesPerPixel(frameBuffer.pixelFormat, dataType);
   if (_customTypeBuffer == nullptr || _customTypeBuffer->getDirectSize() != targetSize) {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Allocating %zu ByteBuffer with custom DataType...", targetSize);
-    jni::local_ref<JByteBuffer> buffer = JByteBuffer::allocateDirect(targetSize);
-    _customTypeBuffer = jni::make_global(buffer);
+    _customTypeBuffer = allocateBuffer(targetSize, "_customTypeBuffer");
   }
   _customTypeBuffer->rewind();
   FrameBuffer destination = {
