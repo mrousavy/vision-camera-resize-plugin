@@ -1,7 +1,8 @@
 project(VisionCameraResizePlugin)
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.9.0)
 
 set (PACKAGE_NAME "VisionCameraResizePlugin")
+set (BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 17)
 
