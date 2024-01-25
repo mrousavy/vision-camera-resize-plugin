@@ -63,6 +63,8 @@ uint8_t* FrameBuffer::data() {
 }
 
 FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
+  __android_log_write(ANDROID_LOG_INFO, TAG, "Converting YUV 4:2:0 -> ARGB 8888...");
+
   jni::local_ref<JArrayClass<JImagePlane>> planes = image->getPlanes();
 
   jni::local_ref<JImagePlane> yPlane = planes->getElement(0);
@@ -114,6 +116,8 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
 FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
                                          int x, int y,
                                          int width, int height) {
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping %zu x %zu ARGB buffer to %zu x %zu...", frameBuffer.width, frameBuffer.height, width, height);
+
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t argbSize = width * height * channels * channelSize;
@@ -141,6 +145,8 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
 }
 
 FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Converting ARGB Buffer to Pixel Format %zu...", pixelFormat);
+
   if (frameBuffer.pixelFormat == pixelFormat) {
     // Already in the correct format.
     return frameBuffer;
@@ -198,6 +204,7 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
 }
 
 FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType) {
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Converting ARGB Buffer to Data Type %zu...", dataType);
   // TODO: Implement
   return frameBuffer;
 }
