@@ -4,7 +4,7 @@ A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame P
 
 ## Installation
 
-1. Install react-native-vision-camera (>= 3.8.2) and make sure Frame Processors are enabled.
+1. Install react-native-vision-camera (>= 3.8.2) and react-native-worklets-core (>= 0.2.4) and make sure Frame Processors are enabled.
 2. Install vision-camera-resize-plugin:
     ```sh
     yarn add vision-camera-resize-plugin
