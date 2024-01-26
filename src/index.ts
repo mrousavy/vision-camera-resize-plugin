@@ -32,11 +32,15 @@ interface Rect extends Size {
 
 interface Options<T extends DataType> {
   /**
-   * Scale the image to the given target size.
-   * - If `x` and `y` are set, the plugin will crop to the target origin.
-   * - If `x` and `y` are not set, the plugin will perform a center-crop of the image.
+   * Crops the image to the given target rect. This is applied first before scaling.
+   *
+   * If this is not set, a center-crop to the given target aspect ratio is automatically calculated.
    */
-  size?: Size | Rect;
+  crop?: Rect;
+  /**
+   * Scale the image to the given target size. This is applied after cropping.
+   */
+  scale?: Size;
   /**
    * Convert the Frame to the given target pixel format.
    *

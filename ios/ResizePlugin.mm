@@ -283,23 +283,27 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 }
 
 - (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer
-                    toArea:(CGRect)rect {
-  CGFloat width = rect.size.width;
-  CGFloat height = rect.size.height;
-  CGFloat x = rect.origin.x;
-  CGFloat y = rect.origin.y;
+                      crop:(CGRect)crop
+                     scale:(CGSize)scale {
+  CGFloat cropWidth = crop.size.width;
+  CGFloat cropHeight = crop.size.height;
+  CGFloat cropX = crop.origin.x;
+  CGFloat cropY = crop.origin.y;
+  
+  CGFloat scaleWidth = scale.width;
+  CGFloat scaleHeight = scale.height;
 
-  if (buffer.width == rect.size.width && buffer.height == rect.size.height && rect.origin.x == 0 && rect.origin.y == 0) {
+  if (buffer.width == cropWidth && buffer.height == cropHeight && buffer.width == scaleWidth && buffer.height == scaleHeight && cropX == 0 && cropY == 0) {
     // We are already in the target size.
-    NSLog(@"Skipping resize, buffer is already desired size (%f x %f)...", width, height);
+    NSLog(@"Skipping resize, buffer is already desired size (%f x %f)...", scaleWidth, scaleHeight);
     return buffer;
   }
 
-  NSLog(@"Resizing ARGB_8 Frame to %f x %f...", width, height);
+  NSLog(@"Resizing ARGB_8 Frame to %f x %f...", scaleWidth, scaleHeight);
 
-  if (_resizeBuffer == nil || _resizeBuffer.width != width || _resizeBuffer.height != height) {
-    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:width
-                                                height:height
+  if (_resizeBuffer == nil || _resizeBuffer.width != scaleWidth || _resizeBuffer.height != scaleHeight) {
+    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:scaleWidth
+                                                height:scaleHeight
                                            pixelFormat:ARGB
                                               dataType:UINT8
                                                  proxy:_proxy];
@@ -323,9 +327,9 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   // Crop
   vImage_Buffer cropped = (vImage_Buffer) {
-      .data = AdvancePtr(source->data, y * source->rowBytes + x * buffer.bytesPerPixel),
-      .height = (unsigned long) height,
-      .width = (unsigned long) width,
+      .data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
+      .height = (unsigned long) cropHeight,
+      .width = (unsigned long) cropWidth,
       .rowBytes = source->rowBytes
   };
   source = &cropped;
@@ -407,27 +411,48 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 - (id)callback:(Frame*)frame withArguments:(NSDictionary*)arguments {
 
   // 1. Parse inputs
-  double targetWidth = (double) frame.width;
-  double targetHeight = (double) frame.height;
-  double targetX = 0;
-  double targetY = 0;
-  NSDictionary* targetSize = arguments[@"size"];
-  if (targetSize != nil) {
-    targetWidth = ((NSNumber*) targetSize[@"width"]).doubleValue;
-    targetHeight = ((NSNumber*) targetSize[@"height"]).doubleValue;
-    NSNumber* targetXNullable = (NSNumber* _Nullable) targetSize[@"x"];
-    NSNumber* targetYNullable = (NSNumber* _Nullable) targetSize[@"y"];
-    if (targetXNullable != nil && targetYNullable != nil) {
-      targetX = targetXNullable.doubleValue;
-      targetY = targetYNullable.doubleValue;
-    } else {
-      // do a center-crop by default
-      targetX = (frame.width / 2) - (targetWidth / 2);
-      targetY = (frame.height / 2) - (targetHeight / 2);
-    }
-    NSLog(@"ResizePlugin: Target size: %f x %f, at (%f, %f)", targetWidth, targetHeight, targetX, targetY);
+  double scaleWidth = (double) frame.width;
+  double scaleHeight = (double) frame.height;
+  NSDictionary* scale = arguments[@"scale"];
+  if (scale != nil) {
+    scaleWidth = ((NSNumber*) scale[@"width"]).doubleValue;
+    scaleHeight = ((NSNumber*) scale[@"height"]).doubleValue;
+    NSLog(@"ResizePlugin: Scaling to %f x %f.", scaleWidth, scaleHeight);
   } else {
-    NSLog(@"ResizePlugin: No custom target size supplied.");
+    NSLog(@"ResizePlugin: No custom scale supplied.");
+  }
+  
+  double cropWidth = (double) frame.width;
+  double cropHeight = (double) frame.height;
+  double cropX = 0;
+  double cropY = 0;
+  NSDictionary* crop = arguments[@"crop"];
+  if (crop != nil) {
+    cropWidth = ((NSNumber*) crop[@"width"]).doubleValue;
+    cropHeight = ((NSNumber*) crop[@"height"]).doubleValue;
+    cropX = ((NSNumber*) crop[@"x"]).doubleValue;
+    cropY = ((NSNumber*) crop[@"y"]).doubleValue;
+    NSLog(@"ResizePlugin: Cropping to %f x %f, at (%f, %f)", cropWidth, cropHeight, cropX, cropY);
+  } else {
+    if (scale != nil) {
+      double aspectRatio = frame.width / frame.height;
+      double targetAspectRatio = scaleWidth / scaleHeight;
+      
+      if (aspectRatio > targetAspectRatio) {
+        // 1920x1080
+        cropWidth = frame.width * targetAspectRatio;
+        cropHeight = frame.height;
+      } else {
+        // 1080x1920
+        cropWidth = frame.width;
+        cropHeight = frame.width / targetAspectRatio;
+      }
+      cropX = (frame.width / 2) - (cropWidth / 2);
+      cropY = (frame.height / 2) - (cropHeight / 2);
+      NSLog(@"ResizePlugin: Cropping to %f x %f at (%f, %f).", cropWidth, cropHeight, cropX, cropY);
+    } else {
+      NSLog(@"ResizePlugin: Both scale and crop are nil, using Frame's original dimensions.");
+    }
   }
 
   ConvertPixelFormat pixelFormat = BGRA;
@@ -465,9 +490,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   }
 
   // 3. Resize
-  CGRect targetRect = CGRectMake(targetX, targetX, targetWidth, targetHeight);
+  CGRect cropRect = CGRectMake(cropX, cropY, cropWidth, cropHeight);
+  CGSize scaleSize = CGSizeMake(scaleWidth, scaleHeight);
   result = [self resizeARGB:result
-                     toArea:targetRect];
+                       crop:cropRect
+                      scale:scaleSize];
 
   // 4. Convert ARGB -> ??? format
   result = [self convertARGB:result
