@@ -257,9 +257,10 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
 }
 
 jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
-                                                      int cropX, int cropY,
-                                                      int targetWidth, int targetHeight,
-                                                      int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
+                                                       int cropX, int cropY,
+                                                       int cropWidth, int cropHeight,
+                                                       int scaleWidth, int scaleHeight,
+                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
@@ -267,7 +268,7 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   FrameBuffer result = imageToFrameBuffer(image);
 
   // 2. Crop ARGB
-  result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
+  result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
 
   // 3. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);

@@ -440,7 +440,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       
       if (aspectRatio > targetAspectRatio) {
         // 1920x1080
-        cropWidth = frame.width * targetAspectRatio;
+        cropWidth = frame.height * targetAspectRatio;
         cropHeight = frame.height;
       } else {
         // 1080x1920
