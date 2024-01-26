@@ -1,6 +1,7 @@
 package com.visioncameraresizeplugin
 
 import android.media.Image
+import android.graphics.ImageFormat
 import android.util.Log
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
@@ -80,7 +81,13 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             Log.i(TAG, "Target DataType: $targetType")
         }
 
-        val resized = resize(frame.image,
+        val image = frame.image
+
+        if (image.format != ImageFormat.YUV_420_888) {
+            throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
+        }
+
+        val resized = resize(image,
                 targetX, targetY,
                 targetWidth, targetHeight,
                 targetFormat.ordinal, targetType.ordinal)
