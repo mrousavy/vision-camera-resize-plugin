@@ -186,7 +186,6 @@ FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer,
             .buffer = _scaleBuffer,
     };
 
-
     int status = libyuv::ARGBScale(frameBuffer.data(), frameBuffer.bytesPerRow(),
                                    frameBuffer.width, frameBuffer.height,
                                    destination.data(), destination.bytesPerRow(),
