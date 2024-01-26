@@ -58,6 +58,7 @@ private:
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);
+  FrameBuffer scaleARGBBuffer(FrameBuffer frameBuffer, int width, int height);
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
 
@@ -70,7 +71,8 @@ private:
   // YUV (?x?) -> ARGB (?x?)
   global_ref<JByteBuffer> _argbBuffer;
   // ARGB (?x?) -> ARGB (!x!)
-  global_ref<JByteBuffer> _resizeBuffer;
+  global_ref<JByteBuffer> _cropBuffer;
+  global_ref<JByteBuffer> _scaleBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
   // Custom Data Type (e.g. float32)
