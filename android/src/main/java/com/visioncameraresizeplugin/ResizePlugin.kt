@@ -84,11 +84,11 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
                 val targetAspectRatio = scaleWidth / scaleHeight
 
                 if (aspectRatio > targetAspectRatio) {
-                    cropWidth = frame.height * targetAspectRatio
+                    cropWidth = frame.width * targetAspectRatio
                     cropHeight = frame.height
                 } else {
                     cropWidth = frame.width
-                    cropHeight = frame.width / targetAspectRatio
+                    cropHeight = frame.height / targetAspectRatio
                 }
                 cropX = (frame.width / 2) - (cropWidth / 2)
                 cropY = (frame.height / 2) - (cropHeight / 2)

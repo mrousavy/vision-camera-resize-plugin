@@ -289,7 +289,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   CGFloat cropHeight = crop.size.height;
   CGFloat cropX = crop.origin.x;
   CGFloat cropY = crop.origin.y;
-  
+
   CGFloat scaleWidth = scale.width;
   CGFloat scaleHeight = scale.height;
 
@@ -421,7 +421,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   } else {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
-  
+
   double cropWidth = (double) frame.width;
   double cropHeight = (double) frame.height;
   double cropX = 0;
@@ -437,15 +437,15 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     if (scale != nil) {
       double aspectRatio = frame.width / frame.height;
       double targetAspectRatio = scaleWidth / scaleHeight;
-      
+
       if (aspectRatio > targetAspectRatio) {
         // 1920x1080
-        cropWidth = frame.height * targetAspectRatio;
+        cropWidth = frame.width * targetAspectRatio;
         cropHeight = frame.height;
       } else {
         // 1080x1920
         cropWidth = frame.width;
-        cropHeight = frame.width / targetAspectRatio;
+        cropHeight = frame.height / targetAspectRatio;
       }
       cropX = (frame.width / 2) - (cropWidth / 2);
       cropY = (frame.height / 2) - (cropHeight / 2);
