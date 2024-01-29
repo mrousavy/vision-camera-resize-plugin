@@ -12,8 +12,6 @@
 #import <VisionCamera/SharedArray.h>
 #import <VisionCamera/VisionCameraProxy.h>
 
-typedef float float32_t;
-
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
   SharedArray* _sharedArray;
@@ -65,9 +63,11 @@ typedef float float32_t;
 + (size_t)getBytesForDataType:(ConvertDataType)dataType {
   switch (dataType) {
     case UINT8:
+      // 8-bit uint
       return sizeof(uint8_t);
     case FLOAT32:
-      return sizeof(float32_t);
+      // 32-bit float
+      return sizeof(float);
   }
 }
 
