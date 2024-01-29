@@ -26,6 +26,12 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
   }
 
+    private external fun resize(image: Image,
+                                cropX: Int, cropY: Int,
+                                cropWidth: Int, cropHeight: Int,
+                                scaleWidth: Int, scaleHeight: Int,
+                                rotation: Int,
+                                pixelFormat: Int, dataType: Int): ByteBuffer
   init {
     mHybridData = initHybrid()
   }
@@ -48,6 +54,14 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       throw Error("Options cannot be null!")
     }
 
+
+    val image = frame.image
+
+    if (image.format != ImageFormat.YUV_420_888) {
+      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
+    }
+
+
     var cropWidth = frame.width
     var cropHeight = frame.height
     var cropX = 0
@@ -56,6 +70,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     var scaleHeight = frame.height
     var targetFormat = PixelFormat.ARGB
     var targetType = DataType.UINT8
+    val rotation = (params["rotation"] as? Number)?.toInt() ?: 0
 
     val scale = params["scale"] as? Map<*, *>
     if (scale != null) {
@@ -117,19 +132,13 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       Log.i(TAG, "Target DataType: $targetType")
     }
 
-    val image = frame.image
+    val resized = resize(frame.image,
+            cropX, cropY,
+            cropWidth, cropHeight,
+            scaleWidth, scaleHeight,
+            rotation,
+            targetFormat.ordinal, targetType.ordinal)
 
-    if (image.format != ImageFormat.YUV_420_888) {
-      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
-    }
-
-    val resized = resize(
-      image,
-      cropX, cropY,
-      cropWidth, cropHeight,
-      scaleWidth, scaleHeight,
-      targetFormat.ordinal, targetType.ordinal
-    )
     return SharedArray(proxy, resized)
   }
 

@@ -150,15 +150,58 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x,
   return destination;
 }
 
+
+FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation) {
+  if (rotation == 0) {
+    return frameBuffer;
+  }
+
+  int rotatedWidth = frameBuffer.width;
+  int rotatedHeight = frameBuffer.height;
+  if (rotation == 90 || rotation == 270) {
+    std::swap(rotatedWidth, rotatedHeight);
+  }
+
+  size_t channels = getChannelCount(PixelFormat::ARGB);
+  size_t channelSize = getBytesPerChannel(DataType::UINT8);
+  size_t destinationStride =
+          rotation == 90 || rotation == 270 ? rotatedWidth * channels * channelSize
+                                            : frameBuffer.bytesPerRow();
+  size_t argbSize = rotatedWidth * rotatedHeight * channels * channelSize;
+
+  if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != argbSize) {
+    _rotatedBuffer = allocateBuffer(argbSize, "_rotatedBuffer");
+  }
+
+  FrameBuffer destination = {
+          .width = rotatedWidth,
+          .height = rotatedHeight,
+          .pixelFormat = PixelFormat::ARGB,
+          .dataType = DataType::UINT8,
+          .buffer = _rotatedBuffer,
+  };
+
+  int status = libyuv::ARGBRotate(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                  destination.data(), destinationStride,
+                                  frameBuffer.width, frameBuffer.height,
+                                  static_cast<libyuv::RotationMode>(rotation));
+  if (status != 0) {
+    throw std::runtime_error(
+            "Failed to rotate ARGB Buffer! Status: " + std::to_string(status));
+  }
+
+  return destination;
+}
+
 FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer, int width, int height) {
   if (width == frameBuffer.width && height == frameBuffer.height) {
     // already in correct size.
     return frameBuffer;
   }
-
   auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
   auto targetString = rectToString(0, 0, width, height);
   __android_log_print(ANDROID_LOG_INFO, TAG, "Scaling [%s] ARGB buffer to [%s]...", rectString.c_str(), targetString.c_str());
+
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
@@ -276,9 +319,14 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   return destination;
 }
 
-jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
-                                                       int scaleWidth, int scaleHeight, int /* PixelFormat */ pixelFormatOrdinal,
-                                                       int /* DataType */ dataTypeOrdinal) {
+jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
+                                                       int cropX, int cropY,
+                                                       int cropWidth, int cropHeight,
+                                                       int scaleWidth, int scaleHeight,
+                                                       int rotation,
+                                                       int /* PixelFormat */ pixelFormatOrdinal,
+                                                       int /* DataType */ dataTypeOrdinal)
+{
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
@@ -291,10 +339,13 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   // 3. Scale ARGB
   result = scaleARGBBuffer(result, scaleWidth, scaleHeight);
 
-  // 4. Convert from ARGB -> ????
+  // 4. Rotate ARGB
+  result = rotateARGBBuffer(result, rotation);
+
+  // 5. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
 
-  // 5. Convert from data type to other data type
+  // 6. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
 
   return result.buffer;

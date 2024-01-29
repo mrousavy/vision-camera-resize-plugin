@@ -35,6 +35,7 @@ export default function App() {
       },
       pixelFormat: 'rgba',
       dataType: 'uint8',
+      rotation: 180,
     });
     console.log(
       result[Math.round(result.length / 2) + 0],

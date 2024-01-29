@@ -51,6 +51,11 @@ interface Options<T extends DataType> {
    * - `'bgr'`: [B, G, R]
    * - `'abgr'`: [A, B, G, R]
    */
+  rotation?: 0 | 90 | 180 | 270;
+  /**
+   * rotation of the image in degrees.
+   *  defaults to 0
+  */
   pixelFormat: 'rgb' | 'rgba' | 'argb' | 'bgra' | 'bgr' | 'abgr';
   /**
    * The given type to use for the resulting buffer.
