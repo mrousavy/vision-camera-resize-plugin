@@ -144,6 +144,30 @@ The resize plugin can either convert to uint8 or float32 values:
 
 </table>
 
+## Cropping
+
+When scaling to a different size (e.g. 1920x1080 -> 100x100), the Resize Plugin performs a center-crop on the image before scaling it down so the resulting image matches the target aspect ratio instead of being stretched.
+
+You can customize this by passing a custom `crop` parameter, e.g. instead of center-crop, use the top portion of the screen:
+
+```ts
+const resized = resize(frame, {
+  scale: {
+    width: 192,
+    height: 192
+  },
+  crop: {
+    y: 0,
+    x: 0,
+    // 1:1 aspect ratio because we scale to 192x192
+    width: frame.width,
+    height: frame.width
+  },
+  pixelFormat: 'rgb',
+  dataType: 'uint8'
+})
+```
+
 ### Performance
 
 If possible, use one of these two formats:
