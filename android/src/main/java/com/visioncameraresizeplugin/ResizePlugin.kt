@@ -80,15 +80,15 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             }
         } else {
             if (scale != null) {
-                val aspectRatio = frame.width / frame.height
-                val targetAspectRatio = scaleWidth / scaleHeight
+                val aspectRatio = frame.width.toDouble() / frame.height.toDouble()
+                val targetAspectRatio = scaleWidth.toDouble() / scaleHeight.toDouble()
 
                 if (aspectRatio > targetAspectRatio) {
-                    cropWidth = frame.height * targetAspectRatio
+                    cropWidth = (frame.height * targetAspectRatio).toInt()
                     cropHeight = frame.height
                 } else {
                     cropWidth = frame.width
-                    cropHeight = frame.width / targetAspectRatio
+                    cropHeight = (frame.width / targetAspectRatio).toInt()
                 }
                 cropX = (frame.width / 2) - (cropWidth / 2)
                 cropY = (frame.height / 2) - (cropHeight / 2)
