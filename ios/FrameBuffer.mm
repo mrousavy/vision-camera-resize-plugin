@@ -7,6 +7,7 @@
 //
 
 #import "FrameBuffer.h"
+#import <stdfloat>
 
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
