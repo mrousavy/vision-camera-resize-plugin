@@ -122,7 +122,7 @@ std::string rectToString(int x, int y, int width, int height) {
 FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
                                          int x, int y,
                                          int width, int height) {
-  if (width == frameBuffer.width && height == frameBuffer.height) {
+  if (width == frameBuffer.width && height == frameBuffer.height && x == 0 && y == 0) {
     // already in correct size.
     return frameBuffer;
   }
@@ -135,15 +135,15 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t argbSize = width * height * channels * channelSize;
-  if (_resizeBuffer == nullptr || _resizeBuffer->getDirectSize() != argbSize) {
-    _resizeBuffer = allocateBuffer(argbSize, "_resizeBuffer");
+  if (_cropBuffer == nullptr || _cropBuffer->getDirectSize() != argbSize) {
+    _cropBuffer = allocateBuffer(argbSize, "_cropBuffer");
   }
   FrameBuffer destination = {
       .width = width,
       .height = height,
       .pixelFormat = PixelFormat::ARGB,
       .dataType = DataType::UINT8,
-      .buffer = _resizeBuffer,
+      .buffer = _cropBuffer,
   };
 
   int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.bytesPerRow(),
@@ -157,6 +157,45 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
   }
 
   return destination;
+}
+
+
+FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer,
+                                          int width, int height) {
+    if (width == frameBuffer.width && height == frameBuffer.height) {
+        // already in correct size.
+        return frameBuffer;
+    }
+
+    auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
+    auto targetString = rectToString(0, 0, width, height);
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Scaling [%s] ARGB buffer to [%s]...",
+                        rectString.c_str(), targetString.c_str());
+
+    size_t channels = getChannelCount(PixelFormat::ARGB);
+    size_t channelSize = getBytesPerChannel(DataType::UINT8);
+    size_t argbSize = width * height * channels * channelSize;
+    if (_scaleBuffer == nullptr || _scaleBuffer->getDirectSize() != argbSize) {
+        _scaleBuffer = allocateBuffer(argbSize, "_scaleBuffer");
+    }
+    FrameBuffer destination = {
+            .width = width,
+            .height = height,
+            .pixelFormat = PixelFormat::ARGB,
+            .dataType = DataType::UINT8,
+            .buffer = _scaleBuffer,
+    };
+
+    int status = libyuv::ARGBScale(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                   frameBuffer.width, frameBuffer.height,
+                                   destination.data(), destination.bytesPerRow(),
+                                   width, height,
+                                   libyuv::FilterMode::kFilterBilinear);
+    if (status != 0) {
+        throw std::runtime_error("Failed to scale ARGB Buffer! Status: " + std::to_string(status));
+    }
+
+    return destination;
 }
 
 FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
@@ -257,9 +296,10 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
 }
 
 jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
-                                                      int cropX, int cropY,
-                                                      int targetWidth, int targetHeight,
-                                                      int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
+                                                       int cropX, int cropY,
+                                                       int cropWidth, int cropHeight,
+                                                       int scaleWidth, int scaleHeight,
+                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
@@ -267,12 +307,15 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   FrameBuffer result = imageToFrameBuffer(image);
 
   // 2. Crop ARGB
-  result = cropARGBBuffer(result, cropX, cropY, targetWidth, targetHeight);
+  result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
 
-  // 3. Convert from ARGB -> ????
+  // 3. Scale ARGB
+  result = scaleARGBBuffer(result, scaleWidth, scaleHeight);
+
+  // 4. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
 
-  // 4. Convert from data type to other data type
+  // 5. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
 
   return result.buffer;

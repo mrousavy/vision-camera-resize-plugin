@@ -29,10 +29,7 @@ export default function App() {
     const targetHeight = 250;
 
     const result = plugin.resize(frame, {
-      size: {
-        // Center-crop
-        x: frame.width / 2 - targetWidth / 2,
-        y: frame.height / 2 - targetHeight / 2,
+      scale: {
         width: targetWidth,
         height: targetHeight,
       },

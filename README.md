@@ -22,9 +22,7 @@ const frameProcessor = useFrameProcessor((frame) => {
   'worklet'
 
   const resized = resize(frame, {
-    size: {
-      x: 10,
-      y: 10,
+    scale: {
       width: 192,
       height: 192
     },
@@ -175,10 +173,7 @@ const frameProcessor = useFrameProcessor((frame) => {
   'worklet'
 
   const data = resize(frame, {
-    size: {
-      // center-crop
-      x: (frame.width / 2) - (320 / 2),
-      y: (frame.height / 2) - (320 / 2),
+    scale: {
       width: 320,
       height: 320,
     },
@@ -199,9 +194,7 @@ I benchmarked vision-camera-resize-plugin on an iPhone 15 Pro, using the followi
 ```tsx
 const start = performance.now()
 const result = resize(frame, {
-  size: {
-    x: 0,
-    y: 0,
+  scale: {
     width: 100,
     height: 100,
   },

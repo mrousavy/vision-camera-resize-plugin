@@ -32,7 +32,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     private external fun initHybrid(): HybridData
     private external fun resize(image: Image,
                                 cropX: Int, cropY: Int,
-                                targetWidth: Int, targetHeight: Int,
+                                cropWidth: Int, cropHeight: Int,
+                                scaleWidth: Int, scaleHeight: Int,
                                 pixelFormat: Int, dataType: Int): ByteBuffer
 
     override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
@@ -40,31 +41,60 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             throw Error("Options cannot be null!")
         }
 
-        var targetWidth = frame.width
-        var targetHeight = frame.height
-        var targetX = 0
-        var targetY = 0
+        var cropWidth = frame.width
+        var cropHeight = frame.height
+        var cropX = 0
+        var cropY = 0
+        var scaleWidth = frame.width
+        var scaleHeight = frame.height
         var targetFormat = PixelFormat.ARGB
         var targetType = DataType.UINT8
 
-        val targetSize = params["size"] as? Map<*, *>
-        if (targetSize != null) {
-            val targetWidthDouble = targetSize["width"] as? Double
-            val targetHeightDouble = targetSize["height"] as? Double
-            val targetXDouble = targetSize["x"] as? Double
-            val targetYDouble = targetSize["y"] as? Double
-            if (targetWidthDouble != null && targetHeightDouble != null) {
-                targetWidth = targetWidthDouble.toInt()
-                targetHeight = targetHeightDouble.toInt()
-                if (targetXDouble != null && targetYDouble != null) {
-                    targetX = targetXDouble.toInt()
-                    targetY = targetYDouble.toInt()
+        val scale = params["scale"] as? Map<*, *>
+        if (scale != null) {
+            val scaleWidthDouble = scale["width"] as? Double
+            val scaleHeightDouble = scale["height"] as? Double
+            if (scaleWidthDouble != null && scaleHeightDouble != null) {
+                scaleWidth = scaleWidthDouble.toInt()
+                scaleHeight = scaleHeightDouble.toInt()
+            } else {
+                throw Error("Failed to parse values in scale dictionary!")
+            }
+            Log.i(TAG, "Target scale: $scaleWidth x $scaleHeight")
+        }
+
+        val crop = params["crop"] as? Map<*, *>
+        if (crop != null) {
+            val cropWidthDouble = crop["width"] as? Double
+            val cropHeightDouble = crop["height"] as? Double
+            val cropXDouble = crop["x"] as? Double
+            val cropYDouble = crop["y"] as? Double
+            if (cropWidthDouble != null && cropHeightDouble != null && cropXDouble != null && cropYDouble != null) {
+                cropWidth = cropWidthDouble.toInt()
+                cropHeight = cropHeightDouble.toInt()
+                cropX = cropXDouble.toInt()
+                cropY = cropYDouble.toInt()
+                Log.i(TAG, "Target size: $cropWidth x $cropHeight")
+            } else {
+                throw Error("Failed to parse values in crop dictionary!")
+            }
+        } else {
+            if (scale != null) {
+                val aspectRatio = frame.width.toDouble() / frame.height.toDouble()
+                val targetAspectRatio = scaleWidth.toDouble() / scaleHeight.toDouble()
+
+                if (aspectRatio > targetAspectRatio) {
+                    cropWidth = (frame.height * targetAspectRatio).toInt()
+                    cropHeight = frame.height
                 } else {
-                    // by default, do a center crop
-                    targetX = (frame.width / 2) - (targetWidth / 2)
-                    targetY = (frame.height / 2) - (targetHeight / 2)
+                    cropWidth = frame.width
+                    cropHeight = (frame.width / targetAspectRatio).toInt()
                 }
-                Log.i(TAG, "Target size: $targetWidth x $targetHeight")
+                cropX = (frame.width / 2) - (cropWidth / 2)
+                cropY = (frame.height / 2) - (cropHeight / 2)
+                Log.i(TAG, "Cropping to $cropWidth x $cropHeight at ($cropX, $cropY)")
+            } else {
+                Log.i(TAG, "Both scale and crop are null, using Frame's original dimensions.")
             }
         }
 
@@ -81,8 +111,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
         }
 
         val resized = resize(frame.image,
-                targetX, targetY,
-                targetWidth, targetHeight,
+                cropX, cropY,
+                cropWidth, cropHeight,
+                scaleWidth, scaleHeight,
                 targetFormat.ordinal, targetType.ordinal)
         return SharedArray(proxy, resized)
     }
