@@ -7,6 +7,10 @@
 //
 
 #import "FrameBuffer.h"
+#import <Accelerate/Accelerate.h>
+#import <Foundation/Foundation.h>
+#import <VisionCamera/SharedArray.h>
+#import <VisionCamera/VisionCameraProxy.h>
 
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
@@ -59,9 +63,11 @@
 + (size_t)getBytesForDataType:(ConvertDataType)dataType {
   switch (dataType) {
     case UINT8:
+      // 8-bit uint
       return sizeof(uint8_t);
     case FLOAT32:
-      return sizeof(float32_t);
+      // 32-bit float
+      return sizeof(float);
   }
 }
 
