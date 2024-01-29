@@ -8,26 +8,16 @@
 
 #pragma once
 
-#import <Foundation/Foundation.h>
-#import <VisionCamera/VisionCameraProxy.h>
-#import <VisionCamera/SharedArray.h>
 #import <Accelerate/Accelerate.h>
+#import <Foundation/Foundation.h>
+#import <VisionCamera/SharedArray.h>
+#import <VisionCamera/VisionCameraProxy.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSInteger, ConvertPixelFormat) {
-  RGB,
-  ARGB,
-  RGBA,
-  BGR,
-  BGRA,
-  ABGR
-};
+typedef NS_ENUM(NSInteger, ConvertPixelFormat) { RGB, ARGB, RGBA, BGR, BGRA, ABGR };
 
-typedef NS_ENUM(NSInteger, ConvertDataType) {
-  UINT8,
-  FLOAT32
-};
+typedef NS_ENUM(NSInteger, ConvertDataType) { UINT8, FLOAT32 };
 
 @interface FrameBuffer : NSObject
 
@@ -49,9 +39,9 @@ typedef NS_ENUM(NSInteger, ConvertDataType) {
 @property(nonatomic, readonly, nonnull) const vImage_Buffer* imageBuffer;
 @property(nonatomic, readonly, nonnull) SharedArray* sharedArray;
 
-+ (size_t) getBytesForDataType:(ConvertDataType)type;
-+ (size_t) getChannelsPerPixelForFormat:(ConvertPixelFormat)format;
-+ (size_t) getBytesPerPixel:(ConvertPixelFormat)format withType:(ConvertDataType)type;
++ (size_t)getBytesForDataType:(ConvertDataType)type;
++ (size_t)getChannelsPerPixelForFormat:(ConvertPixelFormat)format;
++ (size_t)getBytesPerPixel:(ConvertPixelFormat)format withType:(ConvertDataType)type;
 
 @end
 

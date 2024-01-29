@@ -29,12 +29,13 @@
     "!**/.*"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "git submodule update --init --recursive && bob build",
     "update-submodule": "git submodule update --remote --merge",
-    "release": "release-it"
+    "release": "release-it",
+    "check-all": "scripts/check-all.sh"
   },
   "keywords": [
     "react-native",
@@ -55,6 +56,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@jamesacarr/eslint-formatter-github-actions": "^0.2.0",
     "@react-native/eslint-config": "^0.72.2",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/react": "~17.0.21",

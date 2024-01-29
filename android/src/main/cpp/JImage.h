@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "JImagePlane.h"
 #include <fbjni/fbjni.h>
 #include <jni.h>
-#include "JImagePlane.h"
 
 namespace vision {
 
@@ -16,11 +16,10 @@ using namespace jni;
 struct JImage : public JavaClass<JImage> {
   static constexpr auto kJavaDescriptor = "Landroid/media/Image;";
 
- public:
+public:
   int getWidth() const;
   int getHeight() const;
   jni::local_ref<jni::JArrayClass<JImagePlane>> getPlanes() const;
 };
 
-} // vision
-
+} // namespace vision

@@ -23,17 +23,12 @@
     _height = height;
     _pixelFormat = pixelFormat;
     _dataType = dataType;
-    
+
     size_t bytesPerPixel = [FrameBuffer getBytesPerPixel:pixelFormat withType:dataType];
     size_t size = width * height * bytesPerPixel;
     NSLog(@"Allocating SharedArray (size: %zu)...", size);
     _sharedArray = [[SharedArray alloc] initWithProxy:proxy allocateWithSize:size];
-    _imageBuffer = vImage_Buffer {
-      .width = width,
-      .height = height,
-      .data = _sharedArray.data,
-      .rowBytes = width * bytesPerPixel
-    };
+    _imageBuffer = vImage_Buffer{.width = width, .height = height, .data = _sharedArray.data, .rowBytes = width * bytesPerPixel};
   }
   return self;
 }
@@ -43,27 +38,25 @@
 @synthesize pixelFormat = _pixelFormat;
 @synthesize dataType = _dataType;
 
-- (size_t) channelsPerPixel {
+- (size_t)channelsPerPixel {
   return [FrameBuffer getChannelsPerPixelForFormat:_pixelFormat];
 }
-- (size_t) bytesPerChannel {
+- (size_t)bytesPerChannel {
   return [FrameBuffer getBytesForDataType:_dataType];
 }
-- (size_t) bytesPerPixel {
+- (size_t)bytesPerPixel {
   return self.channelsPerPixel * self.bytesPerChannel;
 }
 
-- (SharedArray*) sharedArray {
+- (SharedArray*)sharedArray {
   return _sharedArray;
 }
 
-- (const vImage_Buffer*) imageBuffer {
+- (const vImage_Buffer*)imageBuffer {
   return &_imageBuffer;
 }
 
-
-
-+ (size_t) getBytesForDataType:(ConvertDataType)dataType {
++ (size_t)getBytesForDataType:(ConvertDataType)dataType {
   switch (dataType) {
     case UINT8:
       return sizeof(uint8_t);
@@ -72,7 +65,7 @@
   }
 }
 
-+ (size_t) getChannelsPerPixelForFormat:(ConvertPixelFormat)format {
++ (size_t)getChannelsPerPixelForFormat:(ConvertPixelFormat)format {
   switch (format) {
     case RGB:
     case BGR:
@@ -85,7 +78,7 @@
   }
 }
 
-+ (size_t) getBytesPerPixel:(ConvertPixelFormat)format withType:(ConvertDataType)type {
++ (size_t)getBytesPerPixel:(ConvertPixelFormat)format withType:(ConvertDataType)type {
   size_t channels = [FrameBuffer getChannelsPerPixelForFormat:format];
   size_t dataTypeSize = [FrameBuffer getBytesForDataType:type];
   return channels * dataTypeSize;

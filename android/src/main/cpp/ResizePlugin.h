@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <fbjni/fbjni.h>
 #include <fbjni/ByteBuffer.h>
+#include <fbjni/fbjni.h>
 #include <jni.h>
 #include <memory>
 #include <string>
@@ -17,19 +17,9 @@ namespace vision {
 using namespace facebook;
 using namespace jni;
 
-enum PixelFormat {
-  RGB,
-  BGR,
-  ARGB,
-  RGBA,
-  BGRA,
-  ABGR
-};
+enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
-enum DataType {
-  UINT8,
-  FLOAT32
-};
+enum DataType { UINT8, FLOAT32 };
 
 struct FrameBuffer {
   int width;
@@ -50,11 +40,8 @@ public:
 private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
-  global_ref<JByteBuffer> resize(alias_ref<JImage> image,
-                                 int cropX, int cropY,
-                                 int cropWidth, int cropHeight,
-                                 int scaleWidth, int scaleHeight,
-                                 int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+  global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
+                                 int scaleHeight, int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);

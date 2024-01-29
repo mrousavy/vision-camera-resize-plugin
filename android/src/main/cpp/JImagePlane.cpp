@@ -27,4 +27,4 @@ jni::local_ref<JByteBuffer> JImagePlane::getBuffer() const {
   return result;
 }
 
-} // vision
+} // namespace vision
