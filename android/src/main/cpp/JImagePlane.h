@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <fbjni/ByteBuffer.h>
 #include <fbjni/fbjni.h>
 #include <jni.h>
-#include <fbjni/ByteBuffer.h>
 
 namespace vision {
 
@@ -16,11 +16,10 @@ using namespace jni;
 struct JImagePlane : public JavaClass<JImagePlane> {
   static constexpr auto kJavaDescriptor = "Landroid/media/Image$Plane;";
 
- public:
+public:
   jni::local_ref<JByteBuffer> getBuffer() const;
   int getPixelStride() const;
   int getRowStride() const;
 };
 
-} // vision
-
+} // namespace vision

@@ -6,21 +6,21 @@
 //  Copyright © 2023 Facebook. All rights reserved.
 //
 
+#import <VisionCamera/Frame.h>
 #import <VisionCamera/FrameProcessorPlugin.h>
 #import <VisionCamera/FrameProcessorPluginRegistry.h>
-#import <VisionCamera/Frame.h>
 #import <VisionCamera/SharedArray.h>
 
+#import <Accelerate/Accelerate.h>
 #import <memory>
 #import <utility>
-#import <Accelerate/Accelerate.h>
 
 #import "FrameBuffer.h"
 
 @interface ResizePlugin : FrameProcessorPlugin
 @end
 
-#define AdvancePtr( _ptr, _bytes) (__typeof__(_ptr))((uintptr_t)(_ptr) + (size_t)(_bytes))
+#define AdvancePtr(_ptr, _bytes) (__typeof__(_ptr))((uintptr_t)(_ptr) + (size_t)(_bytes))
 
 @implementation ResizePlugin {
   // 1. ??? (?x?) -> ARGB (?x?)
@@ -37,8 +37,7 @@
   VisionCameraProxyHolder* _proxy;
 }
 
-- (instancetype) initWithProxy:(VisionCameraProxyHolder*)proxy
-                   withOptions:(NSDictionary*)options {
+- (instancetype)initWithProxy:(VisionCameraProxyHolder*)proxy withOptions:(NSDictionary*)options {
   if (self = [super initWithProxy:proxy withOptions:options]) {
     _proxy = proxy;
   }
@@ -111,17 +110,16 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // Values are from vImage_Types.h::vImage_YpCbCrPixelRange
   switch (pixelFormat) {
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-      return (vImage_YpCbCrPixelRange){ 0, 128, 255, 255, 255, 1, 255, 0 };
+      return (vImage_YpCbCrPixelRange){0, 128, 255, 255, 255, 1, 255, 0};
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
-      return (vImage_YpCbCrPixelRange){ 16, 128, 235, 240, 235, 16, 240, 16 };
+      return (vImage_YpCbCrPixelRange){16, 128, 235, 240, 235, 16, 240, 16};
     default:
       [NSException raise:@"Unknown YUV pixel format!" format:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"];
-      return (vImage_YpCbCrPixelRange) { };
+      return (vImage_YpCbCrPixelRange){};
   }
 }
 
-- (FrameBuffer*)convertYUV:(Frame*)frame
-                     toRGB:(vImageARGBType)targetType {
+- (FrameBuffer*)convertYUV:(Frame*)frame toRGB:(vImageARGBType)targetType {
   NSLog(@"Converting YUV Frame to RGB...");
   vImage_Error error = kvImageNoError;
 
@@ -129,12 +127,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   vImage_YpCbCrToARGB info;
   vImageYpCbCrType sourcevImageFormat = getFramevImageFormat(frame);
-  error = vImageConvert_YpCbCrToARGB_GenerateConversion(kvImage_YpCbCrToARGBMatrix_ITU_R_601_4,
-                                                        &range,
-                                                        &info,
-                                                        sourcevImageFormat,
-                                                        targetType,
-                                                        kvImageNoFlags);
+  error = vImageConvert_YpCbCrToARGB_GenerateConversion(kvImage_YpCbCrToARGBMatrix_ITU_R_601_4, &range, &info, sourcevImageFormat,
+                                                        targetType, kvImageNoFlags);
   if (error != kvImageNoError) {
     [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to create YUV -> RGB conversion! Error: %zu", error];
   }
@@ -142,35 +136,21 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
-  vImage_Buffer sourceY = {
-    .data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0),
-    .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
-    .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
-    .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
-  };
-  vImage_Buffer sourceCbCr = {
-    .data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1),
-    .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
-    .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
-    .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
-  };
+  vImage_Buffer sourceY = {.data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0),
+                           .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
+                           .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
+                           .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)};
+  vImage_Buffer sourceCbCr = {.data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1),
+                              .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
+                              .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
+                              .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)};
 
   if (_argbBuffer == nil || _argbBuffer.width != frame.width || _argbBuffer.height != frame.height) {
-    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width
-                                              height:frame.height
-                                         pixelFormat:ARGB
-                                            dataType:UINT8
-                                               proxy:_proxy];
+    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width height:frame.height pixelFormat:ARGB dataType:UINT8 proxy:_proxy];
   }
   const vImage_Buffer* destination = _argbBuffer.imageBuffer;
 
-  error = vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY,
-                                               &sourceCbCr,
-                                               destination,
-                                               &info,
-                                               nil,
-                                               255,
-                                               kvImageNoFlags);
+  error = vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY, &sourceCbCr, destination, &info, nil, 255, kvImageNoFlags);
   if (error != kvImageNoError) {
     [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to run YUV -> RGB conversion! Error: %zu", error];
   }
@@ -180,10 +160,9 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _argbBuffer;
 }
 
-- (FrameBuffer*)convertARGB:(FrameBuffer*)buffer
-                         to:(ConvertPixelFormat)destinationFormat {
+- (FrameBuffer*)convertARGB:(FrameBuffer*)buffer to:(ConvertPixelFormat)destinationFormat {
   vImage_Error error = kvImageNoError;
-  Pixel_8888 backgroundColor { 0, 0, 0, 255 };
+  Pixel_8888 backgroundColor{0, 0, 0, 255};
 
   // If possible, do all conversions in-memory.
   FrameBuffer* destinationBuffer = buffer;
@@ -191,7 +170,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   size_t targetBytesPerPixel = [FrameBuffer getBytesPerPixel:destinationFormat withType:UINT8];
   if (buffer.bytesPerPixel != targetBytesPerPixel) {
     // The bytes per pixel are not the same, so we need an intermediate array allocation.
-    if (_convertBuffer == nil || _convertBuffer.width != buffer.width || _convertBuffer.height != buffer.height || _convertBuffer.pixelFormat != destinationFormat) {
+    if (_convertBuffer == nil || _convertBuffer.width != buffer.width || _convertBuffer.height != buffer.height ||
+        _convertBuffer.pixelFormat != destinationFormat) {
       _convertBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width
                                                    height:buffer.height
                                               pixelFormat:destinationFormat
@@ -214,7 +194,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     case BGR: {
       NSLog(@"Converting ARGB_8 Frame to BGR_8...");
       error = vImageFlatten_ARGB8888ToRGB888(source, destination, backgroundColor, false, kvImageNoFlags);
-      uint8_t permuteMap[4] = { 2, 1, 0 };
+      uint8_t permuteMap[4] = {2, 1, 0};
       error = vImagePermuteChannels_RGB888(destination, destination, permuteMap, kvImageNoFlags);
       break;
     }
@@ -224,19 +204,19 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     }
     case RGBA: {
       NSLog(@"Converting ARGB_8 Frame to RGBA_8...");
-      uint8_t permuteMap[4] = { 3, 1, 2, 0 };
+      uint8_t permuteMap[4] = {3, 1, 2, 0};
       error = vImagePermuteChannels_ARGB8888(source, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case BGRA: {
       NSLog(@"Converting ARGB_8 Frame to BGRA_8...");
-      uint8_t permuteMap[4] = { 3, 2, 1, 0 };
+      uint8_t permuteMap[4] = {3, 2, 1, 0};
       error = vImagePermuteChannels_ARGB8888(source, destination, permuteMap, kvImageNoFlags);
       break;
     }
     case ABGR: {
       NSLog(@"Converting ARGB_8 Frame to ABGR_8...");
-      uint8_t permuteMap[4] = { 0, 3, 2, 1 };
+      uint8_t permuteMap[4] = {0, 3, 2, 1};
       error = vImagePermuteChannels_ARGB8888(source, destination, permuteMap, kvImageNoFlags);
       break;
     }
@@ -253,25 +233,17 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   NSLog(@"Converting BGRA_8 Frame to ARGB_8...");
 
   if (_argbBuffer == nil || _argbBuffer.width != frame.width || _argbBuffer.height != frame.height) {
-    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width
-                                              height:frame.height
-                                         pixelFormat:ARGB
-                                            dataType:UINT8
-                                               proxy:_proxy];
+    _argbBuffer = [[FrameBuffer alloc] initWithWidth:frame.width height:frame.height pixelFormat:ARGB dataType:UINT8 proxy:_proxy];
   }
 
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
-  vImage_Buffer input {
-    .data = CVPixelBufferGetBaseAddress(pixelBuffer),
-    .width = frame.width,
-    .height = frame.height,
-    .rowBytes = frame.bytesPerRow
-  };
+  vImage_Buffer input{
+      .data = CVPixelBufferGetBaseAddress(pixelBuffer), .width = frame.width, .height = frame.height, .rowBytes = frame.bytesPerRow};
   const vImage_Buffer* destination = _argbBuffer.imageBuffer;
 
-  uint8_t permuteMap[4] = { 3, 2, 1, 0 };
+  uint8_t permuteMap[4] = {3, 2, 1, 0};
   vImage_Error error = vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
   if (error != kvImageNoError) {
     [NSException raise:@"RGB Conversion Error" format:@"Failed to convert Frame to ARGB! Error: %zu", error];
@@ -282,9 +254,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _argbBuffer;
 }
 
-- (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer
-                      crop:(CGRect)crop
-                     scale:(CGSize)scale {
+- (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer crop:(CGRect)crop scale:(CGSize)scale {
   CGFloat cropWidth = crop.size.width;
   CGFloat cropHeight = crop.size.height;
   CGFloat cropX = crop.origin.x;
@@ -293,7 +263,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   CGFloat scaleWidth = scale.width;
   CGFloat scaleHeight = scale.height;
 
-  if (buffer.width == cropWidth && buffer.height == cropHeight && buffer.width == scaleWidth && buffer.height == scaleHeight && cropX == 0 && cropY == 0) {
+  if (buffer.width == cropWidth && buffer.height == cropHeight && buffer.width == scaleWidth && buffer.height == scaleHeight &&
+      cropX == 0 && cropY == 0) {
     // We are already in the target size.
     NSLog(@"Skipping resize, buffer is already desired size (%f x %f)...", scaleWidth, scaleHeight);
     return buffer;
@@ -302,11 +273,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   NSLog(@"Resizing ARGB_8 Frame to %f x %f...", scaleWidth, scaleHeight);
 
   if (_resizeBuffer == nil || _resizeBuffer.width != scaleWidth || _resizeBuffer.height != scaleHeight) {
-    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:scaleWidth
-                                                height:scaleHeight
-                                           pixelFormat:ARGB
-                                              dataType:UINT8
-                                                 proxy:_proxy];
+    _resizeBuffer = [[FrameBuffer alloc] initWithWidth:scaleWidth height:scaleHeight pixelFormat:ARGB dataType:UINT8 proxy:_proxy];
     // reset _tempResizeBuffer as well as that depends on the size
     free(_tempResizeBuffer);
     _tempResizeBuffer = nil;
@@ -326,12 +293,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   }
 
   // Crop
-  vImage_Buffer cropped = (vImage_Buffer) {
-      .data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
-      .height = (unsigned long) cropHeight,
-      .width = (unsigned long) cropWidth,
-      .rowBytes = source->rowBytes
-  };
+  vImage_Buffer cropped = (vImage_Buffer){.data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
+                                          .height = (unsigned long)cropHeight,
+                                          .width = (unsigned long)cropWidth,
+                                          .rowBytes = source->rowBytes};
   source = &cropped;
 
   // Resize
@@ -343,8 +308,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _resizeBuffer;
 }
 
-- (FrameBuffer*)convertInt8Buffer:(FrameBuffer*)buffer
-                       toDataType:(ConvertDataType)targetType {
+- (FrameBuffer*)convertInt8Buffer:(FrameBuffer*)buffer toDataType:(ConvertDataType)targetType {
   if (buffer.dataType == targetType) {
     // we are already in the target type
     return buffer;
@@ -352,7 +316,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   NSLog(@"Converting uint8 (%zu) buffer to target type (%zu)...", buffer.dataType, targetType);
 
-  if (_customTypeBuffer == nil || _customTypeBuffer.width != buffer.width || _customTypeBuffer.height != buffer.height || _customTypeBuffer.pixelFormat != buffer.pixelFormat || _customTypeBuffer.dataType != targetType) {
+  if (_customTypeBuffer == nil || _customTypeBuffer.width != buffer.width || _customTypeBuffer.height != buffer.height ||
+      _customTypeBuffer.pixelFormat != buffer.pixelFormat || _customTypeBuffer.dataType != targetType) {
     _customTypeBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width
                                                     height:buffer.height
                                                pixelFormat:buffer.pixelFormat
@@ -368,11 +333,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       break;
     case FLOAT32: {
       // Convert uint8 -> float32
-      error = vImageConvert_Planar8toPlanarF(source,
-                                             destination,
-                                             1.0f,
-                                             0.0f,
-                                             kvImageNoFlags);
+      error = vImageConvert_Planar8toPlanarF(source, destination, 1.0f, 0.0f, kvImageNoFlags);
       break;
     }
     default:
@@ -390,13 +351,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 // Used only for debugging/inspecting the Image.
 - (UIImage*)bufferToImage:(FrameBuffer*)buffer {
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-  CGContextRef bitmapContext = CGBitmapContextCreate(buffer.sharedArray.data,
-                                                     buffer.width,
-                                                     buffer.height,
-                                                     buffer.bytesPerChannel * 8, // bit per component
+  CGContextRef bitmapContext = CGBitmapContextCreate(buffer.sharedArray.data, buffer.width, buffer.height,
+                                                     buffer.bytesPerChannel * 8,          // bit per component
                                                      buffer.width * buffer.bytesPerPixel, // bytes per row
-                                                     colorSpace,
-                                                     kCGImageAlphaNoneSkipLast);
+                                                     colorSpace, kCGImageAlphaNoneSkipLast);
   CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
 
   UIImage* image = [UIImage imageWithCGImage:cgImage];
@@ -411,31 +369,31 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 - (id)callback:(Frame*)frame withArguments:(NSDictionary*)arguments {
 
   // 1. Parse inputs
-  double scaleWidth = (double) frame.width;
-  double scaleHeight = (double) frame.height;
+  double scaleWidth = (double)frame.width;
+  double scaleHeight = (double)frame.height;
   NSDictionary* scale = arguments[@"scale"];
   if (scale != nil) {
-    scaleWidth = ((NSNumber*) scale[@"width"]).doubleValue;
-    scaleHeight = ((NSNumber*) scale[@"height"]).doubleValue;
+    scaleWidth = ((NSNumber*)scale[@"width"]).doubleValue;
+    scaleHeight = ((NSNumber*)scale[@"height"]).doubleValue;
     NSLog(@"ResizePlugin: Scaling to %f x %f.", scaleWidth, scaleHeight);
   } else {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
 
-  double cropWidth = (double) frame.width;
-  double cropHeight = (double) frame.height;
+  double cropWidth = (double)frame.width;
+  double cropHeight = (double)frame.height;
   double cropX = 0;
   double cropY = 0;
   NSDictionary* crop = arguments[@"crop"];
   if (crop != nil) {
-    cropWidth = ((NSNumber*) crop[@"width"]).doubleValue;
-    cropHeight = ((NSNumber*) crop[@"height"]).doubleValue;
-    cropX = ((NSNumber*) crop[@"x"]).doubleValue;
-    cropY = ((NSNumber*) crop[@"y"]).doubleValue;
+    cropWidth = ((NSNumber*)crop[@"width"]).doubleValue;
+    cropHeight = ((NSNumber*)crop[@"height"]).doubleValue;
+    cropX = ((NSNumber*)crop[@"x"]).doubleValue;
+    cropY = ((NSNumber*)crop[@"y"]).doubleValue;
     NSLog(@"ResizePlugin: Cropping to %f x %f, at (%f, %f)", cropWidth, cropHeight, cropX, cropY);
   } else {
     if (scale != nil) {
-      double aspectRatio = (double) frame.width / (double) frame.height;
+      double aspectRatio = (double)frame.width / (double)frame.height;
       double targetAspectRatio = scaleWidth / scaleHeight;
 
       if (aspectRatio > targetAspectRatio) {
@@ -479,8 +437,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   FourCharCode sourceType = getFramePixelFormat(frame);
   if (sourceType == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange || sourceType == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
     // Convert YUV (4:2:0) -> ARGB_8888 first, only then we can operate in RGB layouts
-    result = [self convertYUV:frame
-                        toRGB:kvImageARGB8888];
+    result = [self convertYUV:frame toRGB:kvImageARGB8888];
   } else if (sourceType == kCVPixelFormatType_32BGRA) {
     // Convert BGRA -> ARGB_8888 first, only then we can operate in RGB layouts
     result = [self convertFrameToARGB:frame];
@@ -492,17 +449,13 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // 3. Resize
   CGRect cropRect = CGRectMake(cropX, cropY, cropWidth, cropHeight);
   CGSize scaleSize = CGSizeMake(scaleWidth, scaleHeight);
-  result = [self resizeARGB:result
-                       crop:cropRect
-                      scale:scaleSize];
+  result = [self resizeARGB:result crop:cropRect scale:scaleSize];
 
   // 4. Convert ARGB -> ??? format
-  result = [self convertARGB:result
-                          to:pixelFormat];
+  result = [self convertARGB:result to:pixelFormat];
 
   // 5. Convert UINT8 -> ??? type
-  result = [self convertInt8Buffer:result
-                        toDataType:dataType];
+  result = [self convertInt8Buffer:result toDataType:dataType];
 
   // 6. Return to JS
   return result.sharedArray;

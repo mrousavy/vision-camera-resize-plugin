@@ -29,12 +29,13 @@
     "!**/.*"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "git submodule update --init --recursive && bob build",
     "update-submodule": "git submodule update --remote --merge",
-    "release": "release-it"
+    "release": "release-it",
+    "check-all": "scripts/check-all.sh"
   },
   "keywords": [
     "react-native",

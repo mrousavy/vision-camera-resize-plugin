@@ -30,5 +30,4 @@ jni::local_ref<jni::JArrayClass<JImagePlane>> JImage::getPlanes() const {
   return result;
 }
 
-
-} // vision
+} // namespace vision

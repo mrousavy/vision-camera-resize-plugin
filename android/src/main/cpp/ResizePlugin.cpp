@@ -3,10 +3,10 @@
 //
 
 #include "ResizePlugin.h"
+#include "libyuv.h"
 #include <android/log.h>
 #include <fbjni/fbjni.h>
 #include <jni.h>
-#include "libyuv.h"
 #include <media/NdkImage.h>
 
 namespace vision {
@@ -101,12 +101,9 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   };
 
   // 1. Convert from YUV -> ARGB
-  int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(),
-                                        uBuffer->getDirectBytes(), uPlane->getRowStride(),
-                                        vBuffer->getDirectBytes(), vPlane->getRowStride(),
-                                        uvPixelStride,
-                                        destination.data(), width * channels * channelSize,
-                                        width, height);
+  int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(), uBuffer->getDirectBytes(),
+                                        uPlane->getRowStride(), vBuffer->getDirectBytes(), vPlane->getRowStride(), uvPixelStride,
+                                        destination.data(), width * channels * channelSize, width, height);
 
   if (status != 0) {
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
@@ -119,9 +116,7 @@ std::string rectToString(int x, int y, int width, int height) {
   return std::to_string(x) + ", " + std::to_string(y) + " @ " + std::to_string(width) + "x" + std::to_string(height);
 }
 
-FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
-                                         int x, int y,
-                                         int width, int height) {
+FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x, int y, int width, int height) {
   if (width == frameBuffer.width && height == frameBuffer.height && x == 0 && y == 0) {
     // already in correct size.
     return frameBuffer;
@@ -129,8 +124,7 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
 
   auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
   auto targetString = rectToString(x, y, width, height);
-  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping [%s] ARGB buffer to [%s]...",
-                      rectString.c_str(), targetString.c_str());
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Cropping [%s] ARGB buffer to [%s]...", rectString.c_str(), targetString.c_str());
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
@@ -146,11 +140,8 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
       .buffer = _cropBuffer,
   };
 
-  int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.bytesPerRow(),
-                                     destination.data(), destination.bytesPerRow(),
-                                     x, y,
-                                     frameBuffer.width, frameBuffer.height,
-                                     width, height,
+  int status = libyuv::ConvertToARGB(frameBuffer.data(), frameBuffer.height * frameBuffer.bytesPerRow(), destination.data(),
+                                     destination.bytesPerRow(), x, y, frameBuffer.width, frameBuffer.height, width, height,
                                      libyuv::kRotate0, libyuv::FOURCC_ARGB);
   if (status != 0) {
     throw std::runtime_error("Failed to crop ARGB Buffer! Status: " + std::to_string(status));
@@ -159,43 +150,37 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer,
   return destination;
 }
 
+FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer, int width, int height) {
+  if (width == frameBuffer.width && height == frameBuffer.height) {
+    // already in correct size.
+    return frameBuffer;
+  }
 
-FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer,
-                                          int width, int height) {
-    if (width == frameBuffer.width && height == frameBuffer.height) {
-        // already in correct size.
-        return frameBuffer;
-    }
+  auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
+  auto targetString = rectToString(0, 0, width, height);
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Scaling [%s] ARGB buffer to [%s]...", rectString.c_str(), targetString.c_str());
 
-    auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
-    auto targetString = rectToString(0, 0, width, height);
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Scaling [%s] ARGB buffer to [%s]...",
-                        rectString.c_str(), targetString.c_str());
+  size_t channels = getChannelCount(PixelFormat::ARGB);
+  size_t channelSize = getBytesPerChannel(DataType::UINT8);
+  size_t argbSize = width * height * channels * channelSize;
+  if (_scaleBuffer == nullptr || _scaleBuffer->getDirectSize() != argbSize) {
+    _scaleBuffer = allocateBuffer(argbSize, "_scaleBuffer");
+  }
+  FrameBuffer destination = {
+      .width = width,
+      .height = height,
+      .pixelFormat = PixelFormat::ARGB,
+      .dataType = DataType::UINT8,
+      .buffer = _scaleBuffer,
+  };
 
-    size_t channels = getChannelCount(PixelFormat::ARGB);
-    size_t channelSize = getBytesPerChannel(DataType::UINT8);
-    size_t argbSize = width * height * channels * channelSize;
-    if (_scaleBuffer == nullptr || _scaleBuffer->getDirectSize() != argbSize) {
-        _scaleBuffer = allocateBuffer(argbSize, "_scaleBuffer");
-    }
-    FrameBuffer destination = {
-            .width = width,
-            .height = height,
-            .pixelFormat = PixelFormat::ARGB,
-            .dataType = DataType::UINT8,
-            .buffer = _scaleBuffer,
-    };
+  int status = libyuv::ARGBScale(frameBuffer.data(), frameBuffer.bytesPerRow(), frameBuffer.width, frameBuffer.height, destination.data(),
+                                 destination.bytesPerRow(), width, height, libyuv::FilterMode::kFilterBilinear);
+  if (status != 0) {
+    throw std::runtime_error("Failed to scale ARGB Buffer! Status: " + std::to_string(status));
+  }
 
-    int status = libyuv::ARGBScale(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                   frameBuffer.width, frameBuffer.height,
-                                   destination.data(), destination.bytesPerRow(),
-                                   width, height,
-                                   libyuv::FilterMode::kFilterBilinear);
-    if (status != 0) {
-        throw std::runtime_error("Failed to scale ARGB Buffer! Status: " + std::to_string(status));
-    }
-
-    return destination;
+  return destination;
 }
 
 FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
@@ -225,25 +210,21 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
       // do nothing, we're already in ARGB
       return frameBuffer;
     case RGB:
-      error = libyuv::ARGBToRGB24(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                  destination.data(), destination.bytesPerRow(),
+      error = libyuv::ARGBToRGB24(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                   destination.width, destination.height);
       break;
     case BGR:
       throw std::runtime_error("BGR is not supported on Android!");
     case RGBA:
-      error = libyuv::ARGBToRGBA(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                 destination.data(), destination.bytesPerRow(),
+      error = libyuv::ARGBToRGBA(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
     case BGRA:
-      error = libyuv::ARGBToBGRA(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                 destination.data(), destination.bytesPerRow(),
+      error = libyuv::ARGBToBGRA(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
     case ABGR:
-      error = libyuv::ARGBToABGR(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                 destination.data(), destination.bytesPerRow(),
+      error = libyuv::ARGBToABGR(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
       break;
   }
@@ -269,11 +250,11 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   }
   size_t size = frameBuffer.buffer->getDirectSize();
   FrameBuffer destination = {
-    .width = frameBuffer.width,
-    .height = frameBuffer.height,
-    .pixelFormat = frameBuffer.pixelFormat,
-    .dataType = dataType,
-    .buffer = _customTypeBuffer,
+      .width = frameBuffer.width,
+      .height = frameBuffer.height,
+      .pixelFormat = frameBuffer.pixelFormat,
+      .dataType = dataType,
+      .buffer = _customTypeBuffer,
   };
 
   int status = 0;
@@ -295,11 +276,9 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   return destination;
 }
 
-jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
-                                                       int cropX, int cropY,
-                                                       int cropWidth, int cropHeight,
-                                                       int scaleWidth, int scaleHeight,
-                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
+jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
+                                                       int scaleWidth, int scaleHeight, int /* PixelFormat */ pixelFormatOrdinal,
+                                                       int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
