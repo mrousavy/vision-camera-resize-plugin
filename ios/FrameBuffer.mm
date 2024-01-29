@@ -7,7 +7,12 @@
 //
 
 #import "FrameBuffer.h"
-#import <stdfloat>
+#import <Accelerate/Accelerate.h>
+#import <Foundation/Foundation.h>
+#import <VisionCamera/SharedArray.h>
+#import <VisionCamera/VisionCameraProxy.h>
+
+typedef float float32_t;
 
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
