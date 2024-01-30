@@ -45,6 +45,7 @@ private:
                                  int cropWidth, int cropHeight,
                                  int scaleWidth, int scaleHeight,
                                  int rotation,
+                                 bool flip,
                                  int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
@@ -53,6 +54,7 @@ private:
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
   FrameBuffer rotateARGBBuffer(FrameBuffer frameBuffer, int rotation);
+  FrameBuffer flipARGBBuffer(FrameBuffer frameBuffer, bool flip);
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
 private:
@@ -65,6 +67,7 @@ private:
   global_ref<JByteBuffer> _cropBuffer;
   global_ref<JByteBuffer> _scaleBuffer;
   global_ref<JByteBuffer> _rotatedBuffer;
+  global_ref<JByteBuffer> _flipBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
   // Custom Data Type (e.g. float32)

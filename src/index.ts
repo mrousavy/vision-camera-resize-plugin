@@ -31,6 +31,7 @@ interface Rect extends Size {
 }
 
 interface Options<T extends DataType> {
+  flip?: boolean;
   /**
    * Crops the image to the given target rect. This is applied first before scaling.
    *

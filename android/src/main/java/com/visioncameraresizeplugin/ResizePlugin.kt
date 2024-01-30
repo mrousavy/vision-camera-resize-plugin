@@ -31,6 +31,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
                                 cropWidth: Int, cropHeight: Int,
                                 scaleWidth: Int, scaleHeight: Int,
                                 rotation: Int,
+                                flip: Boolean,
                                 pixelFormat: Int, dataType: Int): ByteBuffer
   init {
     mHybridData = initHybrid()
@@ -71,6 +72,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     var targetFormat = PixelFormat.ARGB
     var targetType = DataType.UINT8
     val rotation = (params["rotation"] as? Number)?.toInt() ?: 0
+    val flip = params["flip"] as? Boolean ?: false
 
     val scale = params["scale"] as? Map<*, *>
     if (scale != null) {
@@ -137,6 +139,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
             cropWidth, cropHeight,
             scaleWidth, scaleHeight,
             rotation,
+            flip,
             targetFormat.ordinal, targetType.ordinal)
 
     return SharedArray(proxy, resized)

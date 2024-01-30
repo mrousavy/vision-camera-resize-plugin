@@ -150,6 +150,36 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x,
   return destination;
 }
 
+FrameBuffer ResizePlugin::flipARGBBuffer(FrameBuffer frameBuffer, bool flip) {
+  if (!flip) {
+    return frameBuffer;
+  }
+
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Flipping ARGB buffer...");
+
+  size_t channels = getChannelCount(PixelFormat::ARGB);
+  size_t channelSize = getBytesPerChannel(DataType::UINT8);
+  size_t argbSize = frameBuffer.width * frameBuffer.height * channels * channelSize;
+  if (_flipBuffer == nullptr || _flipBuffer->getDirectSize() != argbSize) {
+    _flipBuffer = allocateBuffer(argbSize, "_flipBuffer");
+  }
+  FrameBuffer destination = {
+          .width = frameBuffer.width,
+          .height = frameBuffer.height,
+          .pixelFormat = PixelFormat::ARGB,
+          .dataType = DataType::UINT8,
+          .buffer = _flipBuffer,
+  };
+
+  int status = libyuv::ARGBMirror(frameBuffer.data(), frameBuffer.bytesPerRow(),
+                                  destination.data(), destination.bytesPerRow(),
+                                  frameBuffer.width, frameBuffer.height);
+  if (status != 0) {
+    throw std::runtime_error("Failed to flip ARGB Buffer! Status: " + std::to_string(status));
+  }
+
+  return destination;
+}
 
 FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation) {
   if (rotation == 0) {
@@ -324,6 +354,7 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
                                                        int cropWidth, int cropHeight,
                                                        int scaleWidth, int scaleHeight,
                                                        int rotation,
+                                                       bool flip,
                                                        int /* PixelFormat */ pixelFormatOrdinal,
                                                        int /* DataType */ dataTypeOrdinal)
 {
@@ -341,6 +372,9 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
 
   // 4. Rotate ARGB
   result = rotateARGBBuffer(result, rotation);
+
+  // 5 Flip ARGB if needed
+  result = flipARGBBuffer(result, flip);
 
   // 5. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
