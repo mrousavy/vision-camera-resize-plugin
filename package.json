@@ -70,7 +70,7 @@
     "react-native": "0.73.2",
     "react-native-builder-bob": "^0.23.2",
     "react-native-vision-camera": "^3.8.2",
-    "react-native-worklets-core": "^0.2.4",
+    "react-native-worklets-core": "^0.3.0",
     "release-it": "^17.0.3",
     "turbo": "^1.10.7",
     "typescript": "^5.0.2"
