@@ -26,13 +26,6 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     }
   }
 
-    private external fun resize(image: Image,
-                                cropX: Int, cropY: Int,
-                                cropWidth: Int, cropHeight: Int,
-                                scaleWidth: Int, scaleHeight: Int,
-                                rotation: Int,
-                                flip: Boolean,
-                                pixelFormat: Int, dataType: Int): ByteBuffer
   init {
     mHybridData = initHybrid()
   }
@@ -55,14 +48,6 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       throw Error("Options cannot be null!")
     }
 
-
-    val image = frame.image
-
-    if (image.format != ImageFormat.YUV_420_888) {
-      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
-    }
-
-
     var cropWidth = frame.width
     var cropHeight = frame.height
     var cropX = 0
@@ -71,8 +56,26 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     var scaleHeight = frame.height
     var targetFormat = PixelFormat.ARGB
     var targetType = DataType.UINT8
-    val rotation = (params["rotation"] as? Number)?.toInt() ?: 0
-    val flip = params["flip"] as? Boolean ?: false
+
+    val rotationParam = params["rotation"]
+    val rotation: Rotation
+    if (rotationParam is String) {
+      rotation = Rotation.fromString(rotationParam)
+      Log.i(TAG, "Rotation: ${rotation.degrees}")
+    } else {
+      rotation = Rotation.Rotation0
+      Log.i(TAG, "Rotation not specified, defaulting to: ${rotation.degrees}")
+    }
+
+    val mirrorParam = params["mirror"]
+    val mirror: Boolean
+    if (mirrorParam is Boolean) {
+        mirror = mirrorParam
+        Log.i(TAG, "Mirror: $mirror")
+    } else {
+        mirror = false
+        Log.i(TAG, "Mirror not specified, defaulting to: $mirror")
+    }
 
     val scale = params["scale"] as? Map<*, *>
     if (scale != null) {
@@ -134,13 +137,20 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       Log.i(TAG, "Target DataType: $targetType")
     }
 
-    val resized = resize(frame.image,
-            cropX, cropY,
-            cropWidth, cropHeight,
-            scaleWidth, scaleHeight,
-            rotation,
-            flip,
-            targetFormat.ordinal, targetType.ordinal)
+    val image = frame.image
+
+    if (image.format != ImageFormat.YUV_420_888) {
+      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
+    }
+
+    val resized = resize(
+      image,
+      cropX, cropY,
+      cropWidth, cropHeight,
+      scaleWidth, scaleHeight,
+      rotation.degrees,
+      mirror,
+      targetFormat.ordinal, targetType.ordinal)
 
     return SharedArray(proxy, resized)
   }
@@ -180,6 +190,25 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
           "float32" -> FLOAT32
           else -> throw Error("Invalid DataType! ($string)")
         }
+    }
+  }
+}
+
+private enum class Rotation(val degrees: Int) {
+  Rotation0(0),
+  Rotation90(90),
+  Rotation180(180),
+  Rotation270(270);
+
+  companion object {
+    fun fromString(value: String): Rotation {
+      return when (value) {
+        "0deg" -> Rotation0
+        "90deg" -> Rotation90
+        "180deg" -> Rotation180
+        "270deg" -> Rotation270
+        else -> throw Error("Invalid rotation value! ($value)")
+      }
     }
   }
 }

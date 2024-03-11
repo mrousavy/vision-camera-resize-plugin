@@ -31,7 +31,10 @@ interface Rect extends Size {
 }
 
 interface Options<T extends DataType> {
-  flip?: boolean;
+  /**
+   * If set to `true`, the image will be mirrored horizontally.
+   */
+  mirror?: boolean;
   /**
    * Crops the image to the given target rect. This is applied first before scaling.
    *
@@ -43,6 +46,11 @@ interface Options<T extends DataType> {
    */
   scale?: Size;
   /**
+   * rotation of the image in degrees.
+   * defaults to `0deg`.
+   */
+  rotation: '0deg' | '90deg' | '180deg' | '270deg';
+  /**
    * Convert the Frame to the given target pixel format.
    *
    * - `'rgb'`: [R, G, B] layout
@@ -52,11 +60,6 @@ interface Options<T extends DataType> {
    * - `'bgr'`: [B, G, R]
    * - `'abgr'`: [A, B, G, R]
    */
-  rotation?: 0 | 90 | 180 | 270;
-  /**
-   * rotation of the image in degrees.
-   *  defaults to 0
-  */
   pixelFormat: 'rgb' | 'rgba' | 'argb' | 'bgra' | 'bgr' | 'abgr';
   /**
    * The given type to use for the resulting buffer.

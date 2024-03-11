@@ -17,6 +17,13 @@
 
 #import "FrameBuffer.h"
 
+typedef NS_ENUM(NSInteger, Rotation) {
+  Rotation0 = 0,
+  Rotation90 = 90,
+  Rotation180 = 180,
+  Rotation270 = 270
+};
+
 @interface ResizePlugin : FrameProcessorPlugin
 @end
 
@@ -27,6 +34,8 @@
   FrameBuffer* _argbBuffer;
   // 2. ARGB (?x?) -> ARGB (!x!)
   FrameBuffer* _resizeBuffer;
+  FrameBuffer* _mirrorBuffer;
+  FrameBuffer* _rotateBuffer;
   // 3. ARGB (!x!) -> !!!! (!x!)
   FrameBuffer* _convertBuffer;
   // 3. uint8 -> other type (e.g. float32) if needed
@@ -47,6 +56,22 @@
 - (void)dealloc {
   NSLog(@"Deallocating ResizePlugin...");
   free(_tempResizeBuffer);
+}
+
+- (Rotation)parseRotationFromString:(NSString*)rotationString {
+  if ([rotationString isEqualToString:@"0deg"]) {
+    return Rotation0;
+  } else if ([rotationString isEqualToString:@"90deg"]) {
+    return Rotation90;
+  } else if ([rotationString isEqualToString:@"180deg"]) {
+    return Rotation180;
+  } else if ([rotationString isEqualToString:@"270deg"]) {
+    return Rotation270;
+  } else {
+    @throw [NSException exceptionWithName:@"InvalidRotationValueException"
+                                   reason:[NSString stringWithFormat:@"Invalid rotation value! (%@)", rotationString]
+                                 userInfo:nil];
+  }
 }
 
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
@@ -348,6 +373,85 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _customTypeBuffer;
 }
 
+- (FrameBuffer*)mirrorARGBBuffer:(FrameBuffer*)buffer mirror:(BOOL)mirror {
+
+  if (!mirror) {
+    return buffer;
+  }
+
+  NSLog(@"Mirroring ARGB buffer...");
+
+  if (_mirrorBuffer == nil || _mirrorBuffer.width != buffer.width || _mirrorBuffer.height != buffer.height) {
+    _mirrorBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width
+                                              height:buffer.height
+                                         pixelFormat:buffer.pixelFormat
+                                            dataType:buffer.dataType
+                                               proxy:_proxy];
+  }
+
+  vImage_Buffer src = *buffer.imageBuffer;
+  vImage_Buffer dest = *_mirrorBuffer.imageBuffer;
+
+  vImage_Error error = vImageHorizontalReflect_ARGB8888(&src, &dest, kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [NSException raise:@"Mirror Error" format:@"Failed to mirror ARGB buffer! Error: %ld", error];
+  }
+
+  return _mirrorBuffer;
+}
+
+- (FrameBuffer*)rotateARGBBuffer:(FrameBuffer*)buffer rotation:(int)rotation {
+  if (rotation == 0) {
+    return buffer;
+  }
+
+  NSLog(@"Rotating ARGB buffer...");
+
+  int rotatedWidth = buffer.width;
+  int rotatedHeight = buffer.height;
+  if (rotation == 90 || rotation == 270) {
+    int temp = rotatedWidth;
+    rotatedWidth = rotatedHeight;
+    rotatedHeight = temp;
+  }
+
+  size_t bytesPerPixel = [FrameBuffer getBytesPerPixel:buffer.pixelFormat withType:buffer.dataType];
+
+  if (_rotateBuffer == nil || _rotateBuffer.width != rotatedWidth || _rotateBuffer.height != rotatedHeight) {
+    _rotateBuffer = [[FrameBuffer alloc] initWithWidth:rotatedWidth
+                                                height:rotatedHeight
+                                           pixelFormat:buffer.pixelFormat
+                                              dataType:buffer.dataType
+                                                 proxy:_proxy];
+  }
+
+  vImage_Buffer src = *buffer.imageBuffer;
+  vImage_Buffer dest = *_rotateBuffer.imageBuffer;
+
+  vImage_Error error = kvImageNoError;
+  Pixel_8888 backgroundColor = {0, 0, 0, 0};
+  if (rotation == 90) {
+    error = vImageRotate90_ARGB8888(&src, &dest, kRotate90DegreesClockwise, backgroundColor, kvImageNoFlags);
+  } else if (rotation == 180) {
+    error = vImageRotate90_ARGB8888(&src, &dest, kRotate180DegreesClockwise, backgroundColor, kvImageNoFlags);
+  } else if (rotation == 270) {
+    error = vImageRotate90_ARGB8888(&src, &dest, kRotate270DegreesClockwise, backgroundColor, kvImageNoFlags);
+  } else {
+    [NSException raise:@"Invalid Rotation" format:@"Rotation must be 0, 90, 180, or 270 degrees."];
+    return nil;
+  }
+
+  if (error != kvImageNoError) {
+    [NSException raise:@"Rotation Error" format:@"Failed to rotate ARGB buffer! Error: %ld", error];
+  }
+
+  if (error != kvImageNoError) {
+    [NSException raise:@"Rotation Error" format:@"Failed to rotate ARGB buffer! Error: %ld", error];
+  }
+
+  return _rotateBuffer;
+}
+
 // Used only for debugging/inspecting the Image.
 - (UIImage*)bufferToImage:(FrameBuffer*)buffer {
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -379,6 +483,23 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   } else {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
+    
+  NSString* rotationParam = arguments[@"rotation"];
+  Rotation rotation;
+  if (rotationParam != nil) {
+    rotation = [self parseRotationFromString:rotationParam];
+      NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
+  } else {
+    rotation = Rotation0;
+      NSLog(@"ResizePlugin: Rotation not specified, defaulting to: %ld", (long)rotation);
+  }
+
+  NSNumber* mirrorParam = arguments[@"mirror"];
+  BOOL mirror = NO;
+  if (mirrorParam != nil) {
+    mirror = [mirrorParam boolValue];
+  }
+  NSLog(@"ResizePlugin: Mirror: %@", mirror ? @"YES" : @"NO");
 
   double cropWidth = (double)frame.width;
   double cropHeight = (double)frame.height;
@@ -451,13 +572,19 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   CGSize scaleSize = CGSizeMake(scaleWidth, scaleHeight);
   result = [self resizeARGB:result crop:cropRect scale:scaleSize];
 
-  // 4. Convert ARGB -> ??? format
+  // 4. Rotate
+  result = [self rotateARGBBuffer:result rotation:rotation];
+
+  // 5. Mirror
+  result = [self mirrorARGBBuffer:result mirror:mirror];
+
+  // 6. Convert ARGB -> ??? format
   result = [self convertARGB:result to:pixelFormat];
 
-  // 5. Convert UINT8 -> ??? type
+  // 7. Convert UINT8 -> ??? type
   result = [self convertInt8Buffer:result toDataType:dataType];
 
-  // 6. Return to JS
+  // 8. Return to JS
   return result.sharedArray;
 }
 

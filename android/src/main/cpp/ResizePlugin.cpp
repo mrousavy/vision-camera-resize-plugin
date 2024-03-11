@@ -150,32 +150,31 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x,
   return destination;
 }
 
-FrameBuffer ResizePlugin::flipARGBBuffer(FrameBuffer frameBuffer, bool flip) {
-  if (!flip) {
+FrameBuffer ResizePlugin::mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror) {
+  if (!mirror) {
     return frameBuffer;
   }
 
-  __android_log_print(ANDROID_LOG_INFO, TAG, "Flipping ARGB buffer...");
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Mirroring ARGB buffer...");
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t argbSize = frameBuffer.width * frameBuffer.height * channels * channelSize;
-  if (_flipBuffer == nullptr || _flipBuffer->getDirectSize() != argbSize) {
-    _flipBuffer = allocateBuffer(argbSize, "_flipBuffer");
+  if (_mirrorBuffer == nullptr || _mirrorBuffer->getDirectSize() != argbSize) {
+    _mirrorBuffer = allocateBuffer(argbSize, "_mirrorBuffer");
   }
   FrameBuffer destination = {
-          .width = frameBuffer.width,
-          .height = frameBuffer.height,
-          .pixelFormat = PixelFormat::ARGB,
-          .dataType = DataType::UINT8,
-          .buffer = _flipBuffer,
+      .width = frameBuffer.width,
+      .height = frameBuffer.height,
+      .pixelFormat = PixelFormat::ARGB,
+      .dataType = DataType::UINT8,
+      .buffer = _mirrorBuffer,
   };
 
-  int status = libyuv::ARGBMirror(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                  destination.data(), destination.bytesPerRow(),
+  int status = libyuv::ARGBMirror(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                   frameBuffer.width, frameBuffer.height);
   if (status != 0) {
-    throw std::runtime_error("Failed to flip ARGB Buffer! Status: " + std::to_string(status));
+    throw std::runtime_error("Failed to mirror ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
@@ -194,9 +193,7 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
-  size_t destinationStride =
-          rotation == 90 || rotation == 270 ? rotatedWidth * channels * channelSize
-                                            : frameBuffer.bytesPerRow();
+  size_t destinationStride = rotation == 90 || rotation == 270 ? rotatedWidth * channels * channelSize : frameBuffer.bytesPerRow();
   size_t argbSize = rotatedWidth * rotatedHeight * channels * channelSize;
 
   if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != argbSize) {
@@ -204,20 +201,17 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation
   }
 
   FrameBuffer destination = {
-          .width = rotatedWidth,
-          .height = rotatedHeight,
-          .pixelFormat = PixelFormat::ARGB,
-          .dataType = DataType::UINT8,
-          .buffer = _rotatedBuffer,
+      .width = rotatedWidth,
+      .height = rotatedHeight,
+      .pixelFormat = PixelFormat::ARGB,
+      .dataType = DataType::UINT8,
+      .buffer = _rotatedBuffer,
   };
 
-  int status = libyuv::ARGBRotate(frameBuffer.data(), frameBuffer.bytesPerRow(),
-                                  destination.data(), destinationStride,
-                                  frameBuffer.width, frameBuffer.height,
-                                  static_cast<libyuv::RotationMode>(rotation));
+  int status = libyuv::ARGBRotate(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destinationStride, frameBuffer.width,
+                                  frameBuffer.height, static_cast<libyuv::RotationMode>(rotation));
   if (status != 0) {
-    throw std::runtime_error(
-            "Failed to rotate ARGB Buffer! Status: " + std::to_string(status));
+    throw std::runtime_error("Failed to rotate ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
@@ -231,7 +225,6 @@ FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer, int w
   auto rectString = rectToString(0, 0, frameBuffer.width, frameBuffer.height);
   auto targetString = rectToString(0, 0, width, height);
   __android_log_print(ANDROID_LOG_INFO, TAG, "Scaling [%s] ARGB buffer to [%s]...", rectString.c_str(), targetString.c_str());
-
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
@@ -349,15 +342,9 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   return destination;
 }
 
-jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image,
-                                                       int cropX, int cropY,
-                                                       int cropWidth, int cropHeight,
-                                                       int scaleWidth, int scaleHeight,
-                                                       int rotation,
-                                                       bool flip,
-                                                       int /* PixelFormat */ pixelFormatOrdinal,
-                                                       int /* DataType */ dataTypeOrdinal)
-{
+jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
+                                                       int scaleWidth, int scaleHeight, int rotationOrdinal, bool mirror,
+                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
@@ -371,15 +358,15 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   result = scaleARGBBuffer(result, scaleWidth, scaleHeight);
 
   // 4. Rotate ARGB
-  result = rotateARGBBuffer(result, rotation);
+  result = rotateARGBBuffer(result, rotationOrdinal);
 
-  // 5 Flip ARGB if needed
-  result = flipARGBBuffer(result, flip);
+  // 5 Mirror ARGB if needed
+  result = mirrorARGBBuffer(result, mirror);
 
-  // 5. Convert from ARGB -> ????
+  // 6. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
 
-  // 6. Convert from data type to other data type
+  // 7. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
 
   return result.buffer;

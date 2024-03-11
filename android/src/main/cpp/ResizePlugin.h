@@ -40,13 +40,8 @@ public:
 private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
-  global_ref<JByteBuffer> resize(alias_ref<JImage> image,
-                                 int cropX, int cropY,
-                                 int cropWidth, int cropHeight,
-                                 int scaleWidth, int scaleHeight,
-                                 int rotation,
-                                 bool flip,
-                                 int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+  global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
+                                 int scaleHeight, int rotation, bool mirror, int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);
@@ -54,7 +49,7 @@ private:
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
   FrameBuffer rotateARGBBuffer(FrameBuffer frameBuffer, int rotation);
-  FrameBuffer flipARGBBuffer(FrameBuffer frameBuffer, bool flip);
+  FrameBuffer mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror);
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
 private:
@@ -67,7 +62,7 @@ private:
   global_ref<JByteBuffer> _cropBuffer;
   global_ref<JByteBuffer> _scaleBuffer;
   global_ref<JByteBuffer> _rotatedBuffer;
-  global_ref<JByteBuffer> _flipBuffer;
+  global_ref<JByteBuffer> _mirrorBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
   // Custom Data Type (e.g. float32)
