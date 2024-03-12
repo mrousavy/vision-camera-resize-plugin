@@ -41,7 +41,8 @@ private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
-                                 int scaleHeight, int rotation, bool mirror, int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+                                 int scaleHeight, int rotation, bool mirror, int /* PixelFormat */ pixelFormat,
+                                 int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);

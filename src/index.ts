@@ -5,8 +5,8 @@ type DataType = 'uint8' | 'float32';
 type OutputArray<T extends DataType> = T extends 'uint8'
   ? Uint8Array
   : T extends 'float32'
-  ? Float32Array
-  : never;
+    ? Float32Array
+    : never;
 
 interface Size {
   /**

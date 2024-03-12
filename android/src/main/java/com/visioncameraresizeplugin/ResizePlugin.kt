@@ -70,11 +70,11 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     val mirrorParam = params["mirror"]
     val mirror: Boolean
     if (mirrorParam is Boolean) {
-        mirror = mirrorParam
-        Log.i(TAG, "Mirror: $mirror")
+      mirror = mirrorParam
+      Log.i(TAG, "Mirror: $mirror")
     } else {
-        mirror = false
-        Log.i(TAG, "Mirror not specified, defaulting to: $mirror")
+      mirror = false
+      Log.i(TAG, "Mirror not specified, defaulting to: $mirror")
     }
 
     val scale = params["scale"] as? Map<*, *>
@@ -150,7 +150,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       scaleWidth, scaleHeight,
       rotation.degrees,
       mirror,
-      targetFormat.ordinal, targetType.ordinal)
+      targetFormat.ordinal,
+      targetType.ordinal
+    )
 
     return SharedArray(proxy, resized)
   }
@@ -201,14 +203,13 @@ private enum class Rotation(val degrees: Int) {
   Rotation270(270);
 
   companion object {
-    fun fromString(value: String): Rotation {
-      return when (value) {
+    fun fromString(value: String): Rotation =
+      when (value) {
         "0deg" -> Rotation0
         "90deg" -> Rotation90
         "180deg" -> Rotation180
         "270deg" -> Rotation270
         else -> throw Error("Invalid rotation value! ($value)")
       }
-    }
   }
 }

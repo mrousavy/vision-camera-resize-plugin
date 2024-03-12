@@ -17,12 +17,7 @@
 
 #import "FrameBuffer.h"
 
-typedef NS_ENUM(NSInteger, Rotation) {
-  Rotation0 = 0,
-  Rotation90 = 90,
-  Rotation180 = 180,
-  Rotation270 = 270
-};
+typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
 
 @interface ResizePlugin : FrameProcessorPlugin
 @end
@@ -383,10 +378,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   if (_mirrorBuffer == nil || _mirrorBuffer.width != buffer.width || _mirrorBuffer.height != buffer.height) {
     _mirrorBuffer = [[FrameBuffer alloc] initWithWidth:buffer.width
-                                              height:buffer.height
-                                         pixelFormat:buffer.pixelFormat
-                                            dataType:buffer.dataType
-                                               proxy:_proxy];
+                                                height:buffer.height
+                                           pixelFormat:buffer.pixelFormat
+                                              dataType:buffer.dataType
+                                                 proxy:_proxy];
   }
 
   vImage_Buffer src = *buffer.imageBuffer;
@@ -483,15 +478,15 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   } else {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
-    
+
   NSString* rotationParam = arguments[@"rotation"];
   Rotation rotation;
   if (rotationParam != nil) {
     rotation = [self parseRotationFromString:rotationParam];
-      NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
+    NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
   } else {
     rotation = Rotation0;
-      NSLog(@"ResizePlugin: Rotation not specified, defaulting to: %ld", (long)rotation);
+    NSLog(@"ResizePlugin: Rotation not specified, defaulting to: %ld", (long)rotation);
   }
 
   NSNumber* mirrorParam = arguments[@"mirror"];
