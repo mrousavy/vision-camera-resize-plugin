@@ -5,8 +5,8 @@ type DataType = 'uint8' | 'float32';
 type OutputArray<T extends DataType> = T extends 'uint8'
   ? Uint8Array
   : T extends 'float32'
-  ? Float32Array
-  : never;
+    ? Float32Array
+    : never;
 
 interface Size {
   /**
@@ -32,6 +32,10 @@ interface Rect extends Size {
 
 interface Options<T extends DataType> {
   /**
+   * If set to `true`, the image will be mirrored horizontally.
+   */
+  mirror?: boolean;
+  /**
    * Crops the image to the given target rect. This is applied first before scaling.
    *
    * If this is not set, a center-crop to the given target aspect ratio is automatically calculated.
@@ -41,6 +45,11 @@ interface Options<T extends DataType> {
    * Scale the image to the given target size. This is applied after cropping.
    */
   scale?: Size;
+  /**
+   * rotation of the image in degrees.
+   * defaults to `0deg`.
+   */
+  rotation: '0deg' | '90deg' | '180deg' | '270deg';
   /**
    * Convert the Frame to the given target pixel format.
    *

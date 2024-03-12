@@ -57,6 +57,26 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     var targetFormat = PixelFormat.ARGB
     var targetType = DataType.UINT8
 
+    val rotationParam = params["rotation"]
+    val rotation: Rotation
+    if (rotationParam is String) {
+      rotation = Rotation.fromString(rotationParam)
+      Log.i(TAG, "Rotation: ${rotation.degrees}")
+    } else {
+      rotation = Rotation.Rotation0
+      Log.i(TAG, "Rotation not specified, defaulting to: ${rotation.degrees}")
+    }
+
+    val mirrorParam = params["mirror"]
+    val mirror: Boolean
+    if (mirrorParam is Boolean) {
+      mirror = mirrorParam
+      Log.i(TAG, "Mirror: $mirror")
+    } else {
+      mirror = false
+      Log.i(TAG, "Mirror not specified, defaulting to: $mirror")
+    }
+
     val scale = params["scale"] as? Map<*, *>
     if (scale != null) {
       val scaleWidthDouble = scale["width"] as? Double
@@ -128,8 +148,12 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       cropX, cropY,
       cropWidth, cropHeight,
       scaleWidth, scaleHeight,
-      targetFormat.ordinal, targetType.ordinal
+      rotation.degrees,
+      mirror,
+      targetFormat.ordinal,
+      targetType.ordinal
     )
+
     return SharedArray(proxy, resized)
   }
 
@@ -169,5 +193,23 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
           else -> throw Error("Invalid DataType! ($string)")
         }
     }
+  }
+}
+
+private enum class Rotation(val degrees: Int) {
+  Rotation0(0),
+  Rotation90(90),
+  Rotation180(180),
+  Rotation270(270);
+
+  companion object {
+    fun fromString(value: String): Rotation =
+      when (value) {
+        "0deg" -> Rotation0
+        "90deg" -> Rotation90
+        "180deg" -> Rotation180
+        "270deg" -> Rotation270
+        else -> throw Error("Invalid rotation value! ($value)")
+      }
   }
 }

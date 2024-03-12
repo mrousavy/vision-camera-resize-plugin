@@ -41,14 +41,16 @@ private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
-                                 int scaleHeight, int /* PixelFormat */ pixelFormat, int /* DataType */ dataType);
+                                 int scaleHeight, int rotation, bool mirror, int /* PixelFormat */ pixelFormat,
+                                 int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);
   FrameBuffer scaleARGBBuffer(FrameBuffer frameBuffer, int width, int height);
   FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
-
+  FrameBuffer rotateARGBBuffer(FrameBuffer frameBuffer, int rotation);
+  FrameBuffer mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror);
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
 private:
@@ -60,6 +62,8 @@ private:
   // ARGB (?x?) -> ARGB (!x!)
   global_ref<JByteBuffer> _cropBuffer;
   global_ref<JByteBuffer> _scaleBuffer;
+  global_ref<JByteBuffer> _rotatedBuffer;
+  global_ref<JByteBuffer> _mirrorBuffer;
   // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
   // Custom Data Type (e.g. float32)
