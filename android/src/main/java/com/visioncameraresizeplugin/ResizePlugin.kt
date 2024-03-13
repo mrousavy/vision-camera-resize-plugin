@@ -145,13 +145,16 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
     val resized = resize(
       image,
-      cropX, cropY,
-      cropWidth, cropHeight,
-      scaleWidth, scaleHeight,
-      rotation.degrees,
-      mirror,
-      targetFormat.ordinal,
-      targetType.ordinal
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      scaleWidth,
+      scaleHeight,
+      // rotation.degrees,
+      // mirror,
+      targetFormat.ordinal, /** pixelFormat */
+      targetType.ordinal /** dataType */
     )
 
     return SharedArray(proxy, resized)
