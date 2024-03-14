@@ -39,6 +39,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     cropHeight: Int,
     scaleWidth: Int,
     scaleHeight: Int,
+    rotationDegrees: Int,
+    mirror: Boolean,
     pixelFormat: Int,
     dataType: Int
   ): ByteBuffer
