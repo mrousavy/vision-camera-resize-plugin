@@ -157,11 +157,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
   vImage_Buffer sourceY = {.data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0),
-                           .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
+                           .width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0),
                            .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0),
                            .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)};
   vImage_Buffer sourceCbCr = {.data = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1),
-                              .width = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
+                              .width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 1),
                               .height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1),
                               .rowBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)};
 
