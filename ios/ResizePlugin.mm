@@ -65,8 +65,8 @@ Rotation parseRotation(NSString* rotationString) {
   } else {
     [[unlikely]];
     @throw [NSException exceptionWithName:@"Invalid Rotation"
-                                    reason:[NSString stringWithFormat:@"Invalid rotation value! (%@)", rotationString]
-                                  userInfo:nil];
+                                   reason:[NSString stringWithFormat:@"Invalid rotation value! (%@)", rotationString]
+                                 userInfo:nil];
   }
 }
 
@@ -86,8 +86,8 @@ ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
   } else {
     [[unlikely]];
     @throw [NSException exceptionWithName:@"Invalid PixelFormat"
-                                  reason:[NSString stringWithFormat:@"Invalid PixelFormat passed! (%@)", pixelFormat]
-                                userInfo:nil];
+                                   reason:[NSString stringWithFormat:@"Invalid PixelFormat passed! (%@)", pixelFormat]
+                                 userInfo:nil];
   }
 }
 
@@ -99,8 +99,8 @@ ConvertDataType parseDataType(NSString* dataType) {
   } else {
     [[unlikely]];
     @throw [NSException exceptionWithName:@"Invalid DataType"
-                                  reason:[NSString stringWithFormat:@"Invalid DataType passed! (%@)", dataType]
-                                userInfo:nil];
+                                   reason:[NSString stringWithFormat:@"Invalid DataType passed! (%@)", dataType]
+                                 userInfo:nil];
   }
 }
 
@@ -137,8 +137,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     default:
       [[unlikely]];
       @throw [NSException exceptionWithName:@"Unknown YUV pixel format!"
-                                    reason:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"
-                                  userInfo:nil];
+                                     reason:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"
+                                   userInfo:nil];
   }
 }
 
@@ -376,9 +376,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     }
     default:
       [[unlikely]];
-      @throw [NSException exceptionWithName:@"Unknown target data type!"
-                                    reason:@"Data type was unknown"
-                                  userInfo:nil];
+      @throw [NSException exceptionWithName:@"Unknown target data type!" reason:@"Data type was unknown" userInfo:nil];
   }
 
   if (error != kvImageNoError) {
@@ -450,27 +448,27 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   vImage_Error error = kvImageNoError;
   Pixel_8888 backgroundColor = {0, 0, 0, 0};
   switch (rotation) {
-  case Rotation90:
-    error = vImageRotate90_ARGB8888(src, dest, kRotate90DegreesClockwise, backgroundColor, kvImageNoFlags);
-    break;
-  case Rotation180:
-    error = vImageRotate90_ARGB8888(src, dest, kRotate180DegreesClockwise, backgroundColor, kvImageNoFlags);
-    break;
-  case Rotation270:
-    error = vImageRotate90_ARGB8888(src, dest, kRotate270DegreesClockwise, backgroundColor, kvImageNoFlags);
-    break;
-  default:
-    [[unlikely]];
-    @throw [NSException exceptionWithName:@"Invalid Rotation"
-                                  reason:[NSString stringWithFormat:@"Invalid Rotation! (%zu)", rotation]
-                                userInfo:nil];
+    case Rotation90:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate90DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    case Rotation180:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate180DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    case Rotation270:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate270DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    default:
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Invalid Rotation"
+                                     reason:[NSString stringWithFormat:@"Invalid Rotation! (%zu)", rotation]
+                                   userInfo:nil];
   }
 
   if (error != kvImageNoError) {
     [[unlikely]];
     @throw [NSException exceptionWithName:@"Rotation Error"
-                                  reason:[NSString stringWithFormat:@"Failed to rotate ARGB buffer! Error %ld", error]
-                                userInfo:nil];
+                                   reason:[NSString stringWithFormat:@"Failed to rotate ARGB buffer! Error %ld", error]
+                                 userInfo:nil];
   }
 
   return _rotateBuffer;
