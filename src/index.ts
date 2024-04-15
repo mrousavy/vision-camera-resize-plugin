@@ -46,10 +46,10 @@ interface Options<T extends DataType> {
    */
   scale?: Size;
   /**
-   * rotation of the image in degrees.
-   * defaults to `0deg`.
+   * Rotate the image by a given amount of degrees, clockwise.
+   * @default '0deg'
    */
-  rotation: '0deg' | '90deg' | '180deg' | '270deg';
+  rotation?: '0deg' | '90deg' | '180deg' | '270deg';
   /**
    * Convert the Frame to the given target pixel format.
    *
