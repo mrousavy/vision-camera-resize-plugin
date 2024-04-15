@@ -50,6 +50,19 @@ int getBytesPerPixel(PixelFormat pixelFormat, DataType type) {
   return getChannelCount(pixelFormat) * getBytesPerChannel(type);
 }
 
+libyuv::RotationMode getRotationModeForRotation(Rotation rotation) {
+  switch (rotation) {
+    case Rotation0:
+      return libyuv::RotationMode::kRotate0;
+    case Rotation90:
+      return libyuv::RotationMode::kRotate90;
+    case Rotation180:
+      return libyuv::RotationMode::kRotate180;
+    case Rotation270:
+      return libyuv::RotationMode::kRotate270;
+  }
+}
+
 int FrameBuffer::bytesPerRow() {
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat, dataType);
   return width * bytesPerPixel;
@@ -80,6 +93,7 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
 
   size_t uvPixelStride = uPlane->getPixelStride();
   if (uPlane->getPixelStride() != vPlane->getPixelStride()) {
+    [[unlikely]];
     throw std::runtime_error("U and V planes do not have the same pixel stride! Are you sure this is a 4:2:0 YUV format?");
   }
 
@@ -106,6 +120,7 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
                                         destination.data(), width * channels * channelSize, width, height);
 
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
   }
 
@@ -116,7 +131,7 @@ std::string rectToString(int x, int y, int width, int height) {
   return std::to_string(x) + ", " + std::to_string(y) + " @ " + std::to_string(width) + "x" + std::to_string(height);
 }
 
-FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x, int y, int width, int height) {
+FrameBuffer ResizePlugin::cropARGBBuffer(const FrameBuffer& frameBuffer, int x, int y, int width, int height) {
   if (width == frameBuffer.width && height == frameBuffer.height && x == 0 && y == 0) {
     // already in correct size.
     return frameBuffer;
@@ -144,13 +159,14 @@ FrameBuffer ResizePlugin::cropARGBBuffer(vision::FrameBuffer frameBuffer, int x,
                                      destination.bytesPerRow(), x, y, frameBuffer.width, frameBuffer.height, width, height,
                                      libyuv::kRotate0, libyuv::FOURCC_ARGB);
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to crop ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
 }
 
-FrameBuffer ResizePlugin::mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror) {
+FrameBuffer ResizePlugin::mirrorARGBBuffer(const FrameBuffer& frameBuffer, bool mirror) {
   if (!mirror) {
     return frameBuffer;
   }
@@ -174,29 +190,34 @@ FrameBuffer ResizePlugin::mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror)
   int status = libyuv::ARGBMirror(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                   frameBuffer.width, frameBuffer.height);
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to mirror ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
 }
 
-FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation) {
-  if (rotation == 0) {
+FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotation rotation) {
+  if (rotation == Rotation::Rotation0) {
     return frameBuffer;
   }
 
-  int rotatedWidth = frameBuffer.width;
-  int rotatedHeight = frameBuffer.height;
-  if (rotation == 90 || rotation == 270) {
-    std::swap(rotatedWidth, rotatedHeight);
+  int rotatedWidth, rotatedHeight;
+  if (rotation == Rotation90 || rotation == Rotation270) {
+    // flipped to the side
+    rotatedWidth = frameBuffer.height;
+    rotatedHeight = frameBuffer.width;
+  } else {
+    // still uprighht, maybe upside down.
+    rotatedWidth = frameBuffer.width;
+    rotatedHeight = frameBuffer.height;
   }
 
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
-  size_t destinationStride = rotation == 90 || rotation == 270 ? rotatedWidth * channels * channelSize : frameBuffer.bytesPerRow();
-  size_t argbSize = rotatedWidth * rotatedHeight * channels * channelSize;
+  size_t destinationStride = rotatedWidth * channels * channelSize;
 
-  if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != argbSize) {
+  if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != frameBuffer.buffer->getDirectSize()) {
     _rotatedBuffer = allocateBuffer(argbSize, "_rotatedBuffer");
   }
 
@@ -208,16 +229,18 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(FrameBuffer frameBuffer, int rotation
       .buffer = _rotatedBuffer,
   };
 
+  libyuv::RotationMode rotationMode = getRotationModeForRotation(rotation);
   int status = libyuv::ARGBRotate(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destinationStride, frameBuffer.width,
-                                  frameBuffer.height, static_cast<libyuv::RotationMode>(rotation));
+                                  frameBuffer.height, rotationMode);
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to rotate ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
 }
 
-FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer, int width, int height) {
+FrameBuffer ResizePlugin::scaleARGBBuffer(const FrameBuffer& frameBuffer, int width, int height) {
   if (width == frameBuffer.width && height == frameBuffer.height) {
     // already in correct size.
     return frameBuffer;
@@ -243,13 +266,14 @@ FrameBuffer ResizePlugin::scaleARGBBuffer(vision::FrameBuffer frameBuffer, int w
   int status = libyuv::ARGBScale(frameBuffer.data(), frameBuffer.bytesPerRow(), frameBuffer.width, frameBuffer.height, destination.data(),
                                  destination.bytesPerRow(), width, height, libyuv::FilterMode::kFilterBilinear);
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to scale ARGB Buffer! Status: " + std::to_string(status));
   }
 
   return destination;
 }
 
-FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat pixelFormat) {
+FrameBuffer ResizePlugin::convertARGBBufferTo(const FrameBuffer& frameBuffer, PixelFormat pixelFormat) {
   if (frameBuffer.pixelFormat == pixelFormat) {
     // Already in the correct format.
     return frameBuffer;
@@ -296,13 +320,14 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
   }
 
   if (error != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to convert ARGB Buffer to target Pixel Format! Error: " + std::to_string(error));
   }
 
   return destination;
 }
 
-FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType) {
+FrameBuffer ResizePlugin::convertBufferToDataType(const FrameBuffer& frameBuffer, DataType dataType) {
   if (frameBuffer.dataType == dataType) {
     // Already in correct data-type
     return frameBuffer;
@@ -336,6 +361,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
   }
 
   if (status != 0) {
+    [[unlikely]];
     throw std::runtime_error("Failed to convert Buffer to target Data Type! Error: " + std::to_string(status));
   }
 
@@ -343,10 +369,11 @@ FrameBuffer ResizePlugin::convertBufferToDataType(FrameBuffer frameBuffer, DataT
 }
 
 jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
-                                                       int scaleWidth, int scaleHeight, int rotationOrdinal, bool mirror,
+                                                       int scaleWidth, int scaleHeight, int /* Rotation */ rotationOrdinal, bool mirror,
                                                        int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
+  Rotation rotation = static_cast<Rotation>(rotationOrdinal);
 
   // 1. Convert from YUV -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);
@@ -358,7 +385,7 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   result = scaleARGBBuffer(result, scaleWidth, scaleHeight);
 
   // 4. Rotate ARGB
-  result = rotateARGBBuffer(result, rotationOrdinal);
+  result = rotateARGBBuffer(result, rotation);
 
   // 5 Mirror ARGB if needed
   result = mirrorARGBBuffer(result, mirror);

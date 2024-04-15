@@ -21,6 +21,8 @@ enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
 enum DataType { UINT8, FLOAT32 };
 
+enum Rotation { Rotation0, Rotation90, Rotation180, Rotation270 };
+
 struct FrameBuffer {
   int width;
   int height;
@@ -41,16 +43,16 @@ private:
   explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
-                                 int scaleHeight, int rotation, bool mirror, int /* PixelFormat */ pixelFormat,
+                                 int scaleHeight, int /* Rotation */ rotation, bool mirror, int /* PixelFormat */ pixelFormat,
                                  int /* DataType */ dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
-  FrameBuffer cropARGBBuffer(FrameBuffer frameBuffer, int x, int y, int width, int height);
-  FrameBuffer scaleARGBBuffer(FrameBuffer frameBuffer, int width, int height);
-  FrameBuffer convertARGBBufferTo(FrameBuffer frameBuffer, PixelFormat toFormat);
-  FrameBuffer convertBufferToDataType(FrameBuffer frameBuffer, DataType dataType);
-  FrameBuffer rotateARGBBuffer(FrameBuffer frameBuffer, int rotation);
-  FrameBuffer mirrorARGBBuffer(FrameBuffer frameBuffer, bool mirror);
+  FrameBuffer cropARGBBuffer(const FrameBuffer& frameBuffer, int x, int y, int width, int height);
+  FrameBuffer scaleARGBBuffer(const FrameBuffer& frameBuffer, int width, int height);
+  FrameBuffer convertARGBBufferTo(const FrameBuffer& frameBuffer, PixelFormat toFormat);
+  FrameBuffer convertBufferToDataType(const FrameBuffer& frameBuffer, DataType dataType);
+  FrameBuffer rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotation rotation);
+  FrameBuffer mirrorARGBBuffer(const FrameBuffer& frameBuffer, bool mirror);
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
 private:
