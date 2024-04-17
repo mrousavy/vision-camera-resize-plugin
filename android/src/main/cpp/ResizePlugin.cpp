@@ -276,11 +276,13 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
       // do nothing, we're already in ARGB
       return frameBuffer;
     case RGB:
+      error = libyuv::ARGBToRAW(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
+                                destination.width, destination.height);
+      break;
+    case BGR:
       error = libyuv::ARGBToRGB24(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                   destination.width, destination.height);
       break;
-    case BGR:
-      throw std::runtime_error("BGR is not supported on Android!");
     case RGBA:
       error = libyuv::ARGBToRGBA(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                  destination.width, destination.height);
