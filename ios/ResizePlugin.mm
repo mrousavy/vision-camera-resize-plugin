@@ -353,7 +353,13 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       break;
     case FLOAT32: {
       // Convert uint8 -> float32
-      error = vImageConvert_Planar8toPlanarF(source, destination, 1.0f, 0.0f, kvImageNoFlags);
+      unsigned char *input = (unsigned char *)source->data;
+      float *output = (float *)destination->data;
+
+      size_t numBytes = source->height * source->rowBytes;
+      for (size_t i = 0; i < numBytes; i++) {
+          output[i] = (input[i] / 255.0f);
+      }
       break;
     }
     default:
