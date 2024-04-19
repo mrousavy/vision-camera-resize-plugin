@@ -347,7 +347,6 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   const vImage_Buffer* source = buffer.imageBuffer;
   const vImage_Buffer* destination = _customTypeBuffer.imageBuffer;
 
-  vImage_Error error = kvImageNoError;
   switch (targetType) {
     case UINT8:
       break;
@@ -355,20 +354,16 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       // Convert uint8 -> float32
       unsigned char *input = (unsigned char *)source->data;
       float *output = (float *)destination->data;
-
       size_t numBytes = source->height * source->rowBytes;
-      for (size_t i = 0; i < numBytes; i++) {
-          output[i] = (input[i] / 255.0f);
-      }
+      float scale = 1.0f / 255.0f;
+
+      vDSP_vfltu8(input, 1, output, 1, numBytes);
+      vDSP_vsmul(output, 1, &scale, output, 1, numBytes);
       break;
     }
     default:
       [NSException raise:@"Unknown target data type!" format:@"Data type was unknown."];
       break;
-  }
-
-  if (error != kvImageNoError) {
-    [NSException raise:@"Resize Error" format:@"Failed to convert uint8 to float! Error: %zu", error];
   }
 
   return _customTypeBuffer;
