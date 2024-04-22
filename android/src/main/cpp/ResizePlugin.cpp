@@ -276,7 +276,7 @@ FrameBuffer ResizePlugin::convertARGBBufferTo(FrameBuffer frameBuffer, PixelForm
       // do nothing, we're already in ARGB
       return frameBuffer;
     case RGB:
-      // RAW is [B, G, R] in libyuv memory layout
+      // RAW is [R, G, B] in libyuv memory layout
       error = libyuv::ARGBToRAW(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destination.bytesPerRow(),
                                 destination.width, destination.height);
       break;
