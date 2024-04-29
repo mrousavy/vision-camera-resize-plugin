@@ -6,10 +6,10 @@ import android.util.Log
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.jni.annotations.DoNotStrip
-import com.mrousavy.camera.frameprocessor.Frame
-import com.mrousavy.camera.frameprocessor.FrameProcessorPlugin
-import com.mrousavy.camera.frameprocessor.SharedArray
-import com.mrousavy.camera.frameprocessor.VisionCameraProxy
+import com.mrousavy.camera.frameprocessors.Frame
+import com.mrousavy.camera.frameprocessors.FrameProcessorPlugin
+import com.mrousavy.camera.frameprocessors.SharedArray
+import com.mrousavy.camera.frameprocessors.VisionCameraProxy
 import java.nio.ByteBuffer
 
 @Suppress("KotlinJniMissingFunction") // We're using fbjni
