@@ -440,8 +440,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
                                                  proxy:_proxy];
   }
 
-  vImage_Buffer* src = buffer.imageBuffer;
-  vImage_Buffer* dest = _rotateBuffer.imageBuffer;
+  const vImage_Buffer* src = buffer.imageBuffer;
+  const vImage_Buffer* dest = _rotateBuffer.imageBuffer;
 
   vImage_Error error = kvImageNoError;
   Pixel_8888 backgroundColor = {0, 0, 0, 0};
@@ -504,10 +504,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
 
-  NSString* rotationParam = arguments[@"rotation"];
+  NSString* rotationString = arguments[@"rotation"];
   Rotation rotation;
-  if (rotationParam != nil) {
-    rotation = [self parseRotationFromString:rotationParam];
+  if (rotationString != nil) {
+    rotation = parseRotation(rotationString);
     NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
   } else {
     rotation = Rotation0;
