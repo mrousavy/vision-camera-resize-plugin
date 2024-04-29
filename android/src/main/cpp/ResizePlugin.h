@@ -30,8 +30,8 @@ struct FrameBuffer {
   DataType dataType;
   global_ref<JByteBuffer> buffer;
 
-  uint8_t* data();
-  int bytesPerRow();
+  uint8_t* data() const;
+  int bytesPerRow() const;
 };
 
 struct ResizePlugin : public HybridClass<ResizePlugin> {

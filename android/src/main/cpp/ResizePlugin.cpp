@@ -63,12 +63,12 @@ libyuv::RotationMode getRotationModeForRotation(Rotation rotation) {
   }
 }
 
-int FrameBuffer::bytesPerRow() {
+int FrameBuffer::bytesPerRow() const {
   size_t bytesPerPixel = getBytesPerPixel(pixelFormat, dataType);
   return width * bytesPerPixel;
 }
 
-uint8_t* FrameBuffer::data() {
+uint8_t* FrameBuffer::data() const {
   return buffer->getDirectBytes();
 }
 
@@ -216,9 +216,10 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotat
   size_t channels = getChannelCount(PixelFormat::ARGB);
   size_t channelSize = getBytesPerChannel(DataType::UINT8);
   size_t destinationStride = rotatedWidth * channels * channelSize;
+  size_t rotateSize = frameBuffer.buffer->getDirectSize();
 
-  if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != frameBuffer.buffer->getDirectSize()) {
-    _rotatedBuffer = allocateBuffer(argbSize, "_rotatedBuffer");
+  if (_rotatedBuffer == nullptr || _rotatedBuffer->getDirectSize() != rotateSize) {
+    _rotatedBuffer = allocateBuffer(rotateSize, "_rotatedBuffer");
   }
 
   FrameBuffer destination = {
