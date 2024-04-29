@@ -944,7 +944,7 @@ PODS:
   - React-Mapbuffer (0.73.2):
     - glog
     - React-debug
-  - react-native-worklets-core (0.2.4):
+  - react-native-worklets-core (1.2.0):
     - React
     - React-callinvoker
     - React-Core
@@ -1116,16 +1116,23 @@ PODS:
     - React-logger (= 0.73.2)
     - React-perflogger (= 0.73.2)
   - SocketRocket (0.6.1)
-  - vision-camera-resize-plugin (2.0.0):
+  - vision-camera-resize-plugin (2.1.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
     - VisionCamera
-  - VisionCamera (3.8.2):
+  - VisionCamera (4.0.1):
+    - VisionCamera/Core (= 4.0.1)
+    - VisionCamera/FrameProcessors (= 4.0.1)
+    - VisionCamera/React (= 4.0.1)
+  - VisionCamera/Core (4.0.1)
+  - VisionCamera/FrameProcessors (4.0.1):
     - React
     - React-callinvoker
-    - React-Core
     - react-native-worklets-core
+  - VisionCamera/React (4.0.1):
+    - React-Core
+    - VisionCamera/FrameProcessors
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -1367,7 +1374,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 03644c063fc3621c9a4e8bf263a8150909129618
   React-logger: 66b168e2b2bee57bd8ce9e69f739d805732a5570
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
-  react-native-worklets-core: b4094f51cb2bc649e297206425cb8956f4945e3e
+  react-native-worklets-core: a316975bba20b73d47aa4d41bffb0ca984ba592e
   React-nativeconfig: d753fbbc8cecc8ae413d615599ac378bbf6999bb
   React-NativeModulesApple: 964f4eeab1b4325e8b6a799cf4444c3fd4eb0a9c
   React-perflogger: 29efe63b7ef5fbaaa50ef6eaa92482f98a24b97e
@@ -1389,9 +1396,9 @@ SPEC CHECKSUMS:
   React-utils: f5bc61e7ea3325c0732ae2d755f4441940163b85
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  vision-camera-resize-plugin: 627fad747d8eb56033cd1a0ebd4581d26794e82d
-  VisionCamera: edbcd00e27a438b2228f67823e2b8d15a189065f
-  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
+  vision-camera-resize-plugin: 5c457b56688c34d03352ea2ee66f975f0c3f3642
+  VisionCamera: 8e00df84a76cf26ca70ecd3b6ed05dc0d3b60beb
+  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 9cf228fb4a0a05c32bc602c7f07154b180219b9e
 

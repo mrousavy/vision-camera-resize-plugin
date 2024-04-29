@@ -53,7 +53,7 @@ typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation1
   free(_tempResizeBuffer);
 }
 
-- (Rotation)parseRotationFromString:(NSString*)rotationString {
+Rotation parseRotation(NSString* rotationString) {
   if ([rotationString isEqualToString:@"0deg"]) {
     return Rotation0;
   } else if ([rotationString isEqualToString:@"90deg"]) {
@@ -63,7 +63,8 @@ typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation1
   } else if ([rotationString isEqualToString:@"270deg"]) {
     return Rotation270;
   } else {
-    @throw [NSException exceptionWithName:@"InvalidRotationValueException"
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Invalid Rotation"
                                    reason:[NSString stringWithFormat:@"Invalid rotation value! (%@)", rotationString]
                                  userInfo:nil];
   }
@@ -72,35 +73,35 @@ typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation1
 ConvertPixelFormat parsePixelFormat(NSString* pixelFormat) {
   if ([pixelFormat isEqualToString:@"rgb"]) {
     return RGB;
-  }
-  if ([pixelFormat isEqualToString:@"rgba"]) {
+  } else if ([pixelFormat isEqualToString:@"rgba"]) {
     return RGBA;
-  }
-  if ([pixelFormat isEqualToString:@"argb"]) {
+  } else if ([pixelFormat isEqualToString:@"argb"]) {
     return ARGB;
-  }
-  if ([pixelFormat isEqualToString:@"bgra"]) {
+  } else if ([pixelFormat isEqualToString:@"bgra"]) {
     return BGRA;
-  }
-  if ([pixelFormat isEqualToString:@"bgr"]) {
+  } else if ([pixelFormat isEqualToString:@"bgr"]) {
     return BGR;
-  }
-  if ([pixelFormat isEqualToString:@"abgr"]) {
+  } else if ([pixelFormat isEqualToString:@"abgr"]) {
     return ABGR;
+  } else {
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Invalid PixelFormat"
+                                   reason:[NSString stringWithFormat:@"Invalid PixelFormat passed! (%@)", pixelFormat]
+                                 userInfo:nil];
   }
-  [NSException raise:@"Invalid PixelFormat" format:@"Invalid PixelFormat passed! (%@)", pixelFormat];
-  return RGB;
 }
 
 ConvertDataType parseDataType(NSString* dataType) {
   if ([dataType isEqualToString:@"uint8"]) {
     return UINT8;
-  }
-  if ([dataType isEqualToString:@"float32"]) {
+  } else if ([dataType isEqualToString:@"float32"]) {
     return FLOAT32;
+  } else {
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Invalid DataType"
+                                   reason:[NSString stringWithFormat:@"Invalid DataType passed! (%@)", dataType]
+                                 userInfo:nil];
   }
-  [NSException raise:@"Invalid DataType" format:@"Invalid DataType passed! (%@)", dataType];
-  return UINT8;
 }
 
 FourCharCode getFramePixelFormat(Frame* frame) {
@@ -134,8 +135,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
       return (vImage_YpCbCrPixelRange){16, 128, 235, 240, 235, 16, 240, 16};
     default:
-      [NSException raise:@"Unknown YUV pixel format!" format:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"];
-      return (vImage_YpCbCrPixelRange){};
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Unknown YUV pixel format!"
+                                     reason:@"Frame Pixel format is not supported in vImage_YpCbCrPixelRange!"
+                                   userInfo:nil];
   }
 }
 
@@ -150,7 +153,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   error = vImageConvert_YpCbCrToARGB_GenerateConversion(kvImage_YpCbCrToARGBMatrix_ITU_R_601_4, &range, &info, sourcevImageFormat,
                                                         targetType, kvImageNoFlags);
   if (error != kvImageNoError) {
-    [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to create YUV -> RGB conversion! Error: %zu", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"YUV -> RGB conversion error"
+                                   reason:[NSString stringWithFormat:@"Failed to create YUV -> RGB conversion! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer);
@@ -172,7 +178,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   error = vImageConvert_420Yp8_CbCr8ToARGB8888(&sourceY, &sourceCbCr, destination, &info, nil, 255, kvImageNoFlags);
   if (error != kvImageNoError) {
-    [NSException raise:@"YUV -> RGB conversion error" format:@"Failed to run YUV -> RGB conversion! Error: %zu", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"YUV -> RGB conversion error"
+                                   reason:[NSString stringWithFormat:@"Failed to run YUV -> RGB conversion! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -243,7 +252,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   }
 
   if (error != kvImageNoError) {
-    [NSException raise:@"RGB Conversion Error" format:@"Failed to convert RGB layout! Error: %zu", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"RGB Conversion Error"
+                                   reason:[NSString stringWithFormat:@"Failed to convert RGB layout! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   return destinationBuffer;
@@ -266,7 +278,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   uint8_t permuteMap[4] = {3, 2, 1, 0};
   vImage_Error error = vImagePermuteChannels_ARGB8888(&input, destination, permuteMap, kvImageNoFlags);
   if (error != kvImageNoError) {
-    [NSException raise:@"RGB Conversion Error" format:@"Failed to convert Frame to ARGB! Error: %zu", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"RGB Conversion Error"
+                                   reason:[NSString stringWithFormat:@"Failed to convert Frame to ARGB! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -322,7 +337,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // Resize
   vImage_Error error = vImageScale_ARGB8888(source, destination, _tempResizeBuffer, kvImageNoFlags);
   if (error != kvImageNoError) {
-    [NSException raise:@"Resize Error" format:@"Failed to resize ARGB buffer! Error: %zu", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Resize Error"
+                                   reason:[NSString stringWithFormat:@"Failed to resize ARGB buffer! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   return _resizeBuffer;
@@ -362,8 +380,8 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       break;
     }
     default:
-      [NSException raise:@"Unknown target data type!" format:@"Data type was unknown."];
-      break;
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Unknown target data type!" reason:@"Data type was unknown" userInfo:nil];
   }
 
   return _customTypeBuffer;
@@ -390,14 +408,17 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   vImage_Error error = vImageHorizontalReflect_ARGB8888(&src, &dest, kvImageNoFlags);
   if (error != kvImageNoError) {
-    [NSException raise:@"Mirror Error" format:@"Failed to mirror ARGB buffer! Error: %ld", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Mirror Error"
+                                   reason:[NSString stringWithFormat:@"Failed to mirror ARGB buffer! Error: %zu", error]
+                                 userInfo:nil];
   }
 
   return _mirrorBuffer;
 }
 
-- (FrameBuffer*)rotateARGBBuffer:(FrameBuffer*)buffer rotation:(int)rotation {
-  if (rotation == 0) {
+- (FrameBuffer*)rotateARGBBuffer:(FrameBuffer*)buffer rotation:(Rotation)rotation {
+  if (rotation == Rotation0) {
     return buffer;
   }
 
@@ -405,13 +426,11 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 
   int rotatedWidth = buffer.width;
   int rotatedHeight = buffer.height;
-  if (rotation == 90 || rotation == 270) {
+  if (rotation == Rotation90 || rotation == Rotation270) {
     int temp = rotatedWidth;
     rotatedWidth = rotatedHeight;
     rotatedHeight = temp;
   }
-
-  size_t bytesPerPixel = [FrameBuffer getBytesPerPixel:buffer.pixelFormat withType:buffer.dataType];
 
   if (_rotateBuffer == nil || _rotateBuffer.width != rotatedWidth || _rotateBuffer.height != rotatedHeight) {
     _rotateBuffer = [[FrameBuffer alloc] initWithWidth:rotatedWidth
@@ -421,28 +440,33 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
                                                  proxy:_proxy];
   }
 
-  vImage_Buffer src = *buffer.imageBuffer;
-  vImage_Buffer dest = *_rotateBuffer.imageBuffer;
+  const vImage_Buffer* src = buffer.imageBuffer;
+  const vImage_Buffer* dest = _rotateBuffer.imageBuffer;
 
   vImage_Error error = kvImageNoError;
   Pixel_8888 backgroundColor = {0, 0, 0, 0};
-  if (rotation == 90) {
-    error = vImageRotate90_ARGB8888(&src, &dest, kRotate90DegreesClockwise, backgroundColor, kvImageNoFlags);
-  } else if (rotation == 180) {
-    error = vImageRotate90_ARGB8888(&src, &dest, kRotate180DegreesClockwise, backgroundColor, kvImageNoFlags);
-  } else if (rotation == 270) {
-    error = vImageRotate90_ARGB8888(&src, &dest, kRotate270DegreesClockwise, backgroundColor, kvImageNoFlags);
-  } else {
-    [NSException raise:@"Invalid Rotation" format:@"Rotation must be 0, 90, 180, or 270 degrees."];
-    return nil;
+  switch (rotation) {
+    case Rotation90:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate90DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    case Rotation180:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate180DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    case Rotation270:
+      error = vImageRotate90_ARGB8888(src, dest, kRotate270DegreesClockwise, backgroundColor, kvImageNoFlags);
+      break;
+    default:
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Invalid Rotation"
+                                     reason:[NSString stringWithFormat:@"Invalid Rotation! (%zu)", rotation]
+                                   userInfo:nil];
   }
 
   if (error != kvImageNoError) {
-    [NSException raise:@"Rotation Error" format:@"Failed to rotate ARGB buffer! Error: %ld", error];
-  }
-
-  if (error != kvImageNoError) {
-    [NSException raise:@"Rotation Error" format:@"Failed to rotate ARGB buffer! Error: %ld", error];
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Rotation Error"
+                                   reason:[NSString stringWithFormat:@"Failed to rotate ARGB buffer! Error %ld", error]
+                                 userInfo:nil];
   }
 
   return _rotateBuffer;
@@ -480,10 +504,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     NSLog(@"ResizePlugin: No custom scale supplied.");
   }
 
-  NSString* rotationParam = arguments[@"rotation"];
+  NSString* rotationString = arguments[@"rotation"];
   Rotation rotation;
-  if (rotationParam != nil) {
-    rotation = [self parseRotationFromString:rotationParam];
+  if (rotationString != nil) {
+    rotation = parseRotation(rotationString);
     NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
   } else {
     rotation = Rotation0;
@@ -559,8 +583,10 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     // Convert BGRA -> ARGB_8888 first, only then we can operate in RGB layouts
     result = [self convertFrameToARGB:frame];
   } else {
-    [NSException raise:@"Invalid PixelFormat" format:@"Frame has invalid Pixel Format! Disable buffer compression and 10-bit HDR."];
-    return nil;
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Invalid PixelFormat"
+                                   reason:@"Frame has invalid Pixel Format! Disable buffer compression and 10-bit HDR."
+                                 userInfo:nil];
   }
 
   // 3. Resize
