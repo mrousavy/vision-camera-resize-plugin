@@ -233,7 +233,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     }
     case RGBA: {
       NSLog(@"Converting ARGB_8 Frame to RGBA_8...");
-      uint8_t permuteMap[4] = {3, 1, 2, 0};
+      uint8_t permuteMap[4] = {1, 2, 3, 0};
       error = vImagePermuteChannels_ARGB8888(source, destination, permuteMap, kvImageNoFlags);
       break;
     }
