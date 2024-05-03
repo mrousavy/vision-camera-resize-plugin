@@ -1069,7 +1069,7 @@ PODS:
     - React-Core
     - ReactCommon/turbomodule/core
   - SocketRocket (0.6.1)
-  - vision-camera-resize-plugin (3.0.0):
+  - vision-camera-resize-plugin (3.1.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1315,10 +1315,10 @@ SPEC CHECKSUMS:
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   RNReanimated: ffa9614c45d3e088b60c78dedfc176fb37002dac
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  vision-camera-resize-plugin: 878117e43b6bffb55978e186d007b190d3261163
+  vision-camera-resize-plugin: 525763ad8f20ff9e58984ee4d5aceb50ec22ce4c
   VisionCamera: 8e00df84a76cf26ca70ecd3b6ed05dc0d3b60beb
   Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
-PODFILE CHECKSUM: 53930df5557a808cec00bccf909620e7ee7dac1a
+PODFILE CHECKSUM: 16d369efc4af0146b63524f111284c80d034c812
 
-COCOAPODS: 1.15.0
+COCOAPODS: 1.14.3
