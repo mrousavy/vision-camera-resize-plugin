@@ -370,7 +370,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
       break;
     case FLOAT32: {
       // Convert uint8 -> float32
-      unsigned char* input = (unsigned char*)source->data;
+      uint8_t* input = (uint8_t*)source->data;
       float* output = (float*)destination->data;
       size_t numBytes = source->height * source->rowBytes;
       float scale = 1.0f / 255.0f;
