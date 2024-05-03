@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { StyleSheet, View } from 'react-native';
 import {
   Camera,
@@ -7,24 +6,29 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
+import { Options, useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   Skia,
-  AlphaType,
-  ColorType,
   Image,
   SkData,
   Canvas,
   SkImage,
 } from '@shopify/react-native-skia';
+import { useRunOnJS } from 'react-native-worklets-core';
+import { createSkiaImageFromData } from './SkiaUtils';
 
-const SIZE = 256;
+type PixelFormat = Options<'uint8'>['pixelFormat'];
+
+const WIDTH = 480;
+const HEIGHT = 640;
+const TARGET_TYPE = 'uint8' as const;
+const TARGET_FORMAT: PixelFormat = 'rgba';
 
 export default function App() {
   const permission = useCameraPermission();
   const device = useCameraDevice('back');
-  const previewImg = useSharedValue<SkImage | null>(null);
+  const previewImage = useSharedValue<SkImage | null>(null);
 
   React.useEffect(() => {
     permission.requestPermission();
@@ -32,20 +36,14 @@ export default function App() {
 
   const plugin = useResizePlugin();
 
-  const handleSkiaImage = Worklets.createRunOnJS((data: SkData) => {
-    const img = Skia.Image.MakeImage(
-      {
-        width: SIZE,
-        height: SIZE,
-        alphaType: AlphaType.Opaque,
-        colorType: ColorType.RGBA_8888,
-      },
-      data,
-      SIZE * 4
-    );
-
-    previewImg.value = img;
-  });
+  const updatePreviewImageFromData = useRunOnJS(
+    (data: SkData, pixelFormat: PixelFormat) => {
+      const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
+      previewImage.value?.dispose();
+      previewImage.value = image;
+    },
+    []
+  );
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
@@ -55,18 +53,18 @@ export default function App() {
 
       const result = plugin.resize(frame, {
         scale: {
-          width: SIZE,
-          height: SIZE,
+          width: WIDTH,
+          height: HEIGHT,
         },
-        pixelFormat: 'rgba',
-        dataType: 'uint8',
+        dataType: TARGET_TYPE,
+        pixelFormat: TARGET_FORMAT,
         rotation: '90deg',
         mirror: true,
       });
 
       const data = Skia.Data.fromBytes(result);
-
-      handleSkiaImage(data);
+      updatePreviewImageFromData(data, TARGET_FORMAT);
+      data.dispose();
       const end = performance.now();
 
       console.log(
@@ -75,7 +73,7 @@ export default function App() {
         }) in ${(end - start).toFixed(2)}ms`
       );
     },
-    [handleSkiaImage]
+    [updatePreviewImageFromData]
   );
 
   return (
@@ -91,13 +89,13 @@ export default function App() {
         />
       )}
       <View style={styles.canvasWrapper}>
-        <Canvas style={{ width: SIZE, height: SIZE }}>
+        <Canvas style={{ width: WIDTH, height: HEIGHT }}>
           <Image
-            image={previewImg}
+            image={previewImage}
             x={0}
             y={0}
-            width={SIZE}
-            height={SIZE}
+            width={WIDTH}
+            height={HEIGHT}
             fit="cover"
           />
         </Canvas>
