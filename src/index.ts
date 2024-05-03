@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Frame, VisionCameraProxy } from 'react-native-vision-camera';
 
-type DataType = 'uint8' | 'float32';
-type OutputArray<T extends DataType> = T extends 'uint8'
+export type DataType = 'uint8' | 'float32';
+export type OutputArray<T extends DataType> = T extends 'uint8'
   ? Uint8Array
   : T extends 'float32'
     ? Float32Array
@@ -30,7 +30,7 @@ interface Rect extends Size {
   y: number;
 }
 
-interface Options<T extends DataType> {
+export interface Options<T extends DataType> {
   /**
    * If set to `true`, the image will be mirrored horizontally.
    */
@@ -77,7 +77,7 @@ interface Options<T extends DataType> {
  * All temporary memory buffers allocated by the resize plugin
  * will be deleted once this value goes out of scope.
  */
-interface ResizePlugin {
+export interface ResizePlugin {
   /**
    * Resizes the given Frame to the target width/height and
    * convert it to the given pixel format.

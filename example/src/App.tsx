@@ -7,7 +7,7 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
+import { Options, useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   Skia,
@@ -18,13 +18,61 @@ import {
   Canvas,
   SkImage,
 } from '@shopify/react-native-skia';
+import { useRunOnJS } from 'react-native-worklets-core';
 
-const SIZE = 256;
+const WIDTH = 480;
+const HEIGHT = 640;
+const TARGET_TYPE = 'uint8' as const;
+
+type PixelFormat = Options<typeof TARGET_TYPE>['pixelFormat'];
+const TARGET_FORMAT: PixelFormat = 'rgba';
+
+let lastWarn: PixelFormat | undefined;
+lastWarn = undefined;
+function warnNotSupported(pixelFormat: PixelFormat) {
+  if (lastWarn !== pixelFormat) {
+    console.log(
+      `Pixel Format '${pixelFormat}' is not natively supported by Skia! ` +
+        `Displaying a fall-back format that might use wrong colors instead...`
+    );
+    lastWarn = pixelFormat;
+  }
+}
+
+function getSkiaTypeForPixelFormat(pixelFormat: PixelFormat): ColorType {
+  switch (pixelFormat) {
+    case 'abgr':
+    case 'argb':
+      warnNotSupported(pixelFormat);
+      return ColorType.RGBA_8888;
+    case 'bgr':
+      warnNotSupported(pixelFormat);
+      return ColorType.RGB_888x;
+    case 'rgb':
+      return ColorType.RGB_888x;
+    case 'rgba':
+      return ColorType.RGBA_8888;
+    case 'bgra':
+      return ColorType.BGRA_8888;
+  }
+}
+function getComponentsPerPixel(pixelFormat: PixelFormat): number {
+  switch (pixelFormat) {
+    case 'abgr':
+    case 'rgba':
+    case 'bgra':
+    case 'argb':
+      return 4;
+    case 'rgb':
+    case 'bgr':
+      return 3;
+  }
+}
 
 export default function App() {
   const permission = useCameraPermission();
   const device = useCameraDevice('back');
-  const previewImg = useSharedValue<SkImage | null>(null);
+  const previewImage = useSharedValue<SkImage | null>(null);
 
   React.useEffect(() => {
     permission.requestPermission();
@@ -32,20 +80,25 @@ export default function App() {
 
   const plugin = useResizePlugin();
 
-  const handleSkiaImage = Worklets.createRunOnJS((data: SkData) => {
-    const img = Skia.Image.MakeImage(
-      {
-        width: SIZE,
-        height: SIZE,
-        alphaType: AlphaType.Opaque,
-        colorType: ColorType.RGBA_8888,
-      },
-      data,
-      SIZE * 4
-    );
+  const updatePreviewImageFromData = useRunOnJS(
+    (data: SkData, pixelFormat: PixelFormat) => {
+      const componentsPerPixel = getComponentsPerPixel(pixelFormat);
+      const image = Skia.Image.MakeImage(
+        {
+          width: WIDTH,
+          height: HEIGHT,
+          alphaType: AlphaType.Opaque,
+          colorType: getSkiaTypeForPixelFormat(pixelFormat),
+        },
+        data,
+        WIDTH * componentsPerPixel
+      );
 
-    previewImg.value = img;
-  });
+      previewImage.value?.dispose();
+      previewImage.value = image;
+    },
+    []
+  );
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
@@ -55,18 +108,18 @@ export default function App() {
 
       const result = plugin.resize(frame, {
         scale: {
-          width: SIZE,
-          height: SIZE,
+          width: WIDTH,
+          height: HEIGHT,
         },
-        pixelFormat: 'rgba',
-        dataType: 'uint8',
+        dataType: TARGET_TYPE,
+        pixelFormat: TARGET_FORMAT,
         rotation: '90deg',
         mirror: true,
       });
 
       const data = Skia.Data.fromBytes(result);
-
-      handleSkiaImage(data);
+      updatePreviewImageFromData(data, TARGET_FORMAT);
+      data.dispose();
       const end = performance.now();
 
       console.log(
@@ -75,7 +128,7 @@ export default function App() {
         }) in ${(end - start).toFixed(2)}ms`
       );
     },
-    [handleSkiaImage]
+    [updatePreviewImageFromData]
   );
 
   return (
@@ -91,13 +144,13 @@ export default function App() {
         />
       )}
       <View style={styles.canvasWrapper}>
-        <Canvas style={{ width: SIZE, height: SIZE }}>
+        <Canvas style={{ width: WIDTH, height: WIDTH }}>
           <Image
-            image={previewImg}
+            image={previewImage}
             x={0}
             y={0}
-            width={SIZE}
-            height={SIZE}
+            width={WIDTH}
+            height={WIDTH}
             fit="cover"
           />
         </Canvas>
