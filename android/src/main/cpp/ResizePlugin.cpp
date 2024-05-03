@@ -12,6 +12,7 @@
 namespace vision {
 
 using namespace facebook;
+using namespace libyuv;
 
 void ResizePlugin::registerNatives() {
   registerHybrid({
@@ -48,19 +49,6 @@ int getBytesPerChannel(DataType type) {
 
 int getBytesPerPixel(PixelFormat pixelFormat, DataType type) {
   return getChannelCount(pixelFormat) * getBytesPerChannel(type);
-}
-
-libyuv::RotationMode getRotationModeForRotation(Rotation rotation) {
-  switch (rotation) {
-    case Rotation0:
-      return libyuv::RotationMode::kRotate0;
-    case Rotation90:
-      return libyuv::RotationMode::kRotate90;
-    case Rotation180:
-      return libyuv::RotationMode::kRotate180;
-    case Rotation270:
-      return libyuv::RotationMode::kRotate270;
-  }
 }
 
 int FrameBuffer::bytesPerRow() const {
@@ -197,13 +185,15 @@ FrameBuffer ResizePlugin::mirrorARGBBuffer(const FrameBuffer& frameBuffer, bool 
   return destination;
 }
 
-FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotation rotation) {
-  if (rotation == Rotation::Rotation0) {
+FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, RotationMode rotation) {
+  if (rotation == kRotate0) {
     return frameBuffer;
   }
 
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Rotating ARGB buffer by %d degrees...", rotation);
+
   int rotatedWidth, rotatedHeight;
-  if (rotation == Rotation90 || rotation == Rotation270) {
+  if (rotation == kRotate90 || rotation == kRotate270) {
     // flipped to the side
     rotatedWidth = frameBuffer.height;
     rotatedHeight = frameBuffer.width;
@@ -230,9 +220,8 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotat
       .buffer = _rotatedBuffer,
   };
 
-  libyuv::RotationMode rotationMode = getRotationModeForRotation(rotation);
   int status = libyuv::ARGBRotate(frameBuffer.data(), frameBuffer.bytesPerRow(), destination.data(), destinationStride, frameBuffer.width,
-                                  frameBuffer.height, rotationMode);
+                                  frameBuffer.height, rotation);
   if (status != 0) {
     [[unlikely]];
     throw std::runtime_error("Failed to rotate ARGB Buffer! Status: " + std::to_string(status));
@@ -378,7 +367,7 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
                                                        int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
-  Rotation rotation = static_cast<Rotation>(rotationOrdinal);
+  RotationMode rotation = static_cast<RotationMode>(rotationOrdinal);
 
   // 1. Convert from YUV -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);

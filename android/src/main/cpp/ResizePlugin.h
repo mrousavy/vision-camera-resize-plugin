@@ -9,6 +9,7 @@
 #include <jni.h>
 #include <memory>
 #include <string>
+#include <libyuv.h>
 
 #include "JImage.h"
 
@@ -16,12 +17,11 @@ namespace vision {
 
 using namespace facebook;
 using namespace jni;
+using namespace libyuv;
 
 enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
 enum DataType { UINT8, FLOAT32 };
-
-enum Rotation { Rotation0, Rotation90, Rotation180, Rotation270 };
 
 struct FrameBuffer {
   int width;
@@ -51,7 +51,7 @@ private:
   FrameBuffer scaleARGBBuffer(const FrameBuffer& frameBuffer, int width, int height);
   FrameBuffer convertARGBBufferTo(const FrameBuffer& frameBuffer, PixelFormat toFormat);
   FrameBuffer convertBufferToDataType(const FrameBuffer& frameBuffer, DataType dataType);
-  FrameBuffer rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotation rotation);
+  FrameBuffer rotateARGBBuffer(const FrameBuffer& frameBuffer, RotationMode rotation);
   FrameBuffer mirrorARGBBuffer(const FrameBuffer& frameBuffer, bool mirror);
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
