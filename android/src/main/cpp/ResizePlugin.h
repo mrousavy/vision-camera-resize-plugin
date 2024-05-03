@@ -7,9 +7,9 @@
 #include <fbjni/ByteBuffer.h>
 #include <fbjni/fbjni.h>
 #include <jni.h>
+#include <libyuv.h>
 #include <memory>
 #include <string>
-#include <libyuv.h>
 
 #include "JImage.h"
 
