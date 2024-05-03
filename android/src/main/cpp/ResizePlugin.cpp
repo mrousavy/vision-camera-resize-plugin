@@ -202,6 +202,8 @@ FrameBuffer ResizePlugin::rotateARGBBuffer(const FrameBuffer& frameBuffer, Rotat
     return frameBuffer;
   }
 
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Rotating ARGB buffer by %zu degrees...", static_cast<int>(rotation));
+
   int rotatedWidth, rotatedHeight;
   if (rotation == Rotation90 || rotation == Rotation270) {
     // flipped to the side
