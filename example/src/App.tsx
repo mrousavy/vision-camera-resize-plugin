@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { StyleSheet, View } from 'react-native';
 import {
   Camera,
@@ -11,63 +10,20 @@ import { Options, useResizePlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   Skia,
-  AlphaType,
-  ColorType,
   Image,
   SkData,
   Canvas,
   SkImage,
 } from '@shopify/react-native-skia';
 import { useRunOnJS } from 'react-native-worklets-core';
+import { createSkiaImageFromData } from './SkiaUtils';
+
+type PixelFormat = Options<'uint8'>['pixelFormat'];
 
 const WIDTH = 480;
 const HEIGHT = 640;
 const TARGET_TYPE = 'uint8' as const;
-
-type PixelFormat = Options<typeof TARGET_TYPE>['pixelFormat'];
 const TARGET_FORMAT: PixelFormat = 'rgba';
-
-let lastWarn: PixelFormat | undefined;
-lastWarn = undefined;
-function warnNotSupported(pixelFormat: PixelFormat) {
-  if (lastWarn !== pixelFormat) {
-    console.log(
-      `Pixel Format '${pixelFormat}' is not natively supported by Skia! ` +
-        `Displaying a fall-back format that might use wrong colors instead...`
-    );
-    lastWarn = pixelFormat;
-  }
-}
-
-function getSkiaTypeForPixelFormat(pixelFormat: PixelFormat): ColorType {
-  switch (pixelFormat) {
-    case 'abgr':
-    case 'argb':
-      warnNotSupported(pixelFormat);
-      return ColorType.RGBA_8888;
-    case 'bgr':
-      warnNotSupported(pixelFormat);
-      return ColorType.RGB_888x;
-    case 'rgb':
-      return ColorType.RGB_888x;
-    case 'rgba':
-      return ColorType.RGBA_8888;
-    case 'bgra':
-      return ColorType.BGRA_8888;
-  }
-}
-function getComponentsPerPixel(pixelFormat: PixelFormat): number {
-  switch (pixelFormat) {
-    case 'abgr':
-    case 'rgba':
-    case 'bgra':
-    case 'argb':
-      return 4;
-    case 'rgb':
-    case 'bgr':
-      return 3;
-  }
-}
 
 export default function App() {
   const permission = useCameraPermission();
@@ -82,18 +38,7 @@ export default function App() {
 
   const updatePreviewImageFromData = useRunOnJS(
     (data: SkData, pixelFormat: PixelFormat) => {
-      const componentsPerPixel = getComponentsPerPixel(pixelFormat);
-      const image = Skia.Image.MakeImage(
-        {
-          width: WIDTH,
-          height: HEIGHT,
-          alphaType: AlphaType.Opaque,
-          colorType: getSkiaTypeForPixelFormat(pixelFormat),
-        },
-        data,
-        WIDTH * componentsPerPixel
-      );
-
+      const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
       previewImage.value?.dispose();
       previewImage.value = image;
     },
@@ -144,13 +89,13 @@ export default function App() {
         />
       )}
       <View style={styles.canvasWrapper}>
-        <Canvas style={{ width: WIDTH, height: WIDTH }}>
+        <Canvas style={{ width: WIDTH, height: HEIGHT }}>
           <Image
             image={previewImage}
             x={0}
             y={0}
             width={WIDTH}
-            height={WIDTH}
+            height={HEIGHT}
             fit="cover"
           />
         </Canvas>
