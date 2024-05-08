@@ -1,6 +1,7 @@
 package com.visioncameraresizeplugin
 
 import android.graphics.ImageFormat
+import android.graphics.PixelFormat as AndroidPixelFormat
 import android.media.Image
 import android.util.Log
 import androidx.annotation.Keep
@@ -42,7 +43,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     rotation: Int,
     mirror: Boolean,
     pixelFormat: Int,
-    dataType: Int
+    dataType: Int,
+    sourceImageFormat: Int
   ): ByteBuffer
 
   override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
@@ -141,8 +143,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
     val image = frame.image
 
-    if (image.format != ImageFormat.YUV_420_888) {
-      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
+    if (image.format != ImageFormat.YUV_420_888 && image.format != AndroidPixelFormat.RGBA_8888) {
+      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 and  RGBA_8888 are supported. Did you set pixelFormat=\"yuv\" or \"rgb\"?")
     }
 
     val resized = resize(
@@ -153,7 +155,8 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       rotation.degrees,
       mirror,
       targetFormat.ordinal,
-      targetType.ordinal
+      targetType.ordinal,
+      image.format
     )
 
     return SharedArray(proxy, resized)

@@ -19,6 +19,8 @@ using namespace jni;
 
 enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
+enum SourceImageFormat { RGBA_8888 = 1, YUV_420_888 = 35 };
+
 enum DataType { UINT8, FLOAT32 };
 
 enum Rotation { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
@@ -44,9 +46,10 @@ private:
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
                                  int scaleHeight, int /* Rotation */ rotation, bool mirror, int /* PixelFormat */ pixelFormat,
-                                 int /* DataType */ dataType);
+                                 int /* DataType */ dataType, int /* SourceImageFormat */ sourceImageFormat);
 
-  FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
+  FrameBuffer imageYUVToFrameBuffer(alias_ref<JImage> image);
+  FrameBuffer imageRGBAToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(const FrameBuffer& frameBuffer, int x, int y, int width, int height);
   FrameBuffer scaleARGBBuffer(const FrameBuffer& frameBuffer, int width, int height);
   FrameBuffer convertARGBBufferTo(const FrameBuffer& frameBuffer, PixelFormat toFormat);
