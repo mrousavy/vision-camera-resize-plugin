@@ -24,7 +24,7 @@ int JImage::getHeight() const {
   return result;
 }
 
-int JImage::getFroamt() const {
+int JImage::getFormat() const {
   auto method = getClass()->getMethod<jint()>("getFormat");
   auto result = method(self());
   return result;

@@ -101,24 +101,25 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   };
 
   int sourceImageFormat = image->getFormat();
+  int status;
 
   switch (sourceImageFormat) {
-    case SourceImageFormat::RGBA_8888:
-
+    case SourceImageFormat::RGBA_8888: {
       __android_log_write(ANDROID_LOG_INFO, TAG, "Converting RGBA 8888 -> ARGB 8888...");
       jni::local_ref<JImagePlane> rgbaPlane = planes->getElement(0);
       jni::local_ref<JByteBuffer> rgbaBuffer = rgbaPlane->getBuffer();
       // 1. Convert from RGBA -> ARGB
-      int status = libyuv::RGBAToARGB(rgbaBuffer->getDirectBytes(), rgbaPlane->getRowStride(), destination.data(),
-                                      width * channels * channelSize, width, height);
+      status = libyuv::RGBAToARGB(rgbaBuffer->getDirectBytes(), rgbaPlane->getRowStride(), destination.data(),
+                                  width * channels * channelSize, width, height);
 
       if (status != 0) {
         [[unlikely]];
         throw std::runtime_error("Failed to convert RGBA 8888 to ARGB! Error: " + std::to_string(status));
       }
       break;
-
+    }
     default: /* SourceImageFormat.YUV_420_888 */
+    {
       __android_log_write(ANDROID_LOG_INFO, TAG, "Converting YUV 4:2:0 -> ARGB 8888...");
       jni::local_ref<JImagePlane> yPlane = planes->getElement(0);
       jni::local_ref<JByteBuffer> yBuffer = yPlane->getBuffer();
@@ -134,18 +135,19 @@ FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
       }
 
       // 1. Convert from YUV -> ARGB
-      int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(), uBuffer->getDirectBytes(),
-                                            uPlane->getRowStride(), vBuffer->getDirectBytes(), vPlane->getRowStride(), uvPixelStride,
-                                            destination.data(), width * channels * channelSize, width, height);
+      status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(), uBuffer->getDirectBytes(),
+                                        uPlane->getRowStride(), vBuffer->getDirectBytes(), vPlane->getRowStride(), uvPixelStride,
+                                        destination.data(), width * channels * channelSize, width, height);
 
       if (status != 0) {
         [[unlikely]];
         throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
       }
       break;
+    }
   }
 
-  return destination
+  return destination;
 }
 
 std::string rectToString(int x, int y, int width, int height) {
@@ -398,8 +400,7 @@ FrameBuffer ResizePlugin::convertBufferToDataType(const FrameBuffer& frameBuffer
 
 jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
                                                        int scaleWidth, int scaleHeight, int /* Rotation */ rotationOrdinal, bool mirror,
-                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal,
-                                                       int /* SourceImageFormat */ sourceImageFormat) {
+                                                       int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
   PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
   Rotation rotation = static_cast<Rotation>(rotationOrdinal);
