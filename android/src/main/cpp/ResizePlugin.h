@@ -19,6 +19,7 @@ using namespace jni;
 
 enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
+/* Those should match Android ImageFormat and PixelFormat constants */
 enum SourceImageFormat { RGBA_8888 = 1, YUV_420_888 = 35 };
 
 enum DataType { UINT8, FLOAT32 };
@@ -46,10 +47,9 @@ private:
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
                                  int scaleHeight, int /* Rotation */ rotation, bool mirror, int /* PixelFormat */ pixelFormat,
-                                 int /* DataType */ dataType, int /* SourceImageFormat */ sourceImageFormat);
+                                 int /* DataType */ dataType);
 
-  FrameBuffer imageYUVToFrameBuffer(alias_ref<JImage> image);
-  FrameBuffer imageRGBAToFrameBuffer(alias_ref<JImage> image);
+  FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(const FrameBuffer& frameBuffer, int x, int y, int width, int height);
   FrameBuffer scaleARGBBuffer(const FrameBuffer& frameBuffer, int width, int height);
   FrameBuffer convertARGBBufferTo(const FrameBuffer& frameBuffer, PixelFormat toFormat);

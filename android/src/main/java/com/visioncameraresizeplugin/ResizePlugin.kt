@@ -43,8 +43,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     rotation: Int,
     mirror: Boolean,
     pixelFormat: Int,
-    dataType: Int,
-    sourceImageFormat: Int
+    dataType: Int
   ): ByteBuffer
 
   override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
@@ -160,8 +159,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       rotation.degrees,
       mirror,
       targetFormat.ordinal,
-      targetType.ordinal,
-      image.format
+      targetType.ordinal
     )
 
     return SharedArray(proxy, resized)

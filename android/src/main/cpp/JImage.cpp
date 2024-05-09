@@ -24,6 +24,12 @@ int JImage::getHeight() const {
   return result;
 }
 
+int JImage::getFroamt() const {
+  auto method = getClass()->getMethod<jint()>("getFormat");
+  auto result = method(self());
+  return result;
+}
+
 jni::local_ref<jni::JArrayClass<JImagePlane>> JImage::getPlanes() const {
   auto method = getClass()->getMethod<jni::JArrayClass<JImagePlane>()>("getPlanes");
   auto result = method(self());

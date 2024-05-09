@@ -79,23 +79,8 @@ global_ref<JByteBuffer> ResizePlugin::allocateBuffer(size_t size, std::string de
   return make_global(buffer);
 }
 
-FrameBuffer ResizePlugin::imageYUVToFrameBuffer(alias_ref<vision::JImage> image) {
-  __android_log_write(ANDROID_LOG_INFO, TAG, "Converting YUV 4:2:0 -> ARGB 8888...");
-
+FrameBuffer ResizePlugin::imageToFrameBuffer(alias_ref<vision::JImage> image) {
   jni::local_ref<JArrayClass<JImagePlane>> planes = image->getPlanes();
-
-  jni::local_ref<JImagePlane> yPlane = planes->getElement(0);
-  jni::local_ref<JByteBuffer> yBuffer = yPlane->getBuffer();
-  jni::local_ref<JImagePlane> uPlane = planes->getElement(1);
-  jni::local_ref<JByteBuffer> uBuffer = uPlane->getBuffer();
-  jni::local_ref<JImagePlane> vPlane = planes->getElement(2);
-  jni::local_ref<JByteBuffer> vBuffer = vPlane->getBuffer();
-
-  size_t uvPixelStride = uPlane->getPixelStride();
-  if (uPlane->getPixelStride() != vPlane->getPixelStride()) {
-    [[unlikely]];
-    throw std::runtime_error("U and V planes do not have the same pixel stride! Are you sure this is a 4:2:0 YUV format?");
-  }
 
   int width = image->getWidth();
   int height = image->getHeight();
@@ -106,6 +91,7 @@ FrameBuffer ResizePlugin::imageYUVToFrameBuffer(alias_ref<vision::JImage> image)
   if (_argbBuffer == nullptr || _argbBuffer->getDirectSize() != argbSize) {
     _argbBuffer = allocateBuffer(argbSize, "_argbBuffer");
   }
+
   FrameBuffer destination = {
       .width = width,
       .height = height,
@@ -114,54 +100,52 @@ FrameBuffer ResizePlugin::imageYUVToFrameBuffer(alias_ref<vision::JImage> image)
       .buffer = _argbBuffer,
   };
 
-  // 1. Convert from YUV -> ARGB
-  int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(), uBuffer->getDirectBytes(),
-                                        uPlane->getRowStride(), vBuffer->getDirectBytes(), vPlane->getRowStride(), uvPixelStride,
-                                        destination.data(), width * channels * channelSize, width, height);
+  int sourceImageFormat = image->getFormat();
 
-  if (status != 0) {
-    [[unlikely]];
-    throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
+  switch (sourceImageFormat) {
+    case SourceImageFormat::RGBA_8888:
+
+      __android_log_write(ANDROID_LOG_INFO, TAG, "Converting RGBA 8888 -> ARGB 8888...");
+      jni::local_ref<JImagePlane> rgbaPlane = planes->getElement(0);
+      jni::local_ref<JByteBuffer> rgbaBuffer = rgbaPlane->getBuffer();
+      // 1. Convert from RGBA -> ARGB
+      int status = libyuv::RGBAToARGB(rgbaBuffer->getDirectBytes(), rgbaPlane->getRowStride(), destination.data(),
+                                      width * channels * channelSize, width, height);
+
+      if (status != 0) {
+        [[unlikely]];
+        throw std::runtime_error("Failed to convert RGBA 8888 to ARGB! Error: " + std::to_string(status));
+      }
+      break;
+
+    default: /* SourceImageFormat.YUV_420_888 */
+      __android_log_write(ANDROID_LOG_INFO, TAG, "Converting YUV 4:2:0 -> ARGB 8888...");
+      jni::local_ref<JImagePlane> yPlane = planes->getElement(0);
+      jni::local_ref<JByteBuffer> yBuffer = yPlane->getBuffer();
+      jni::local_ref<JImagePlane> uPlane = planes->getElement(1);
+      jni::local_ref<JByteBuffer> uBuffer = uPlane->getBuffer();
+      jni::local_ref<JImagePlane> vPlane = planes->getElement(2);
+      jni::local_ref<JByteBuffer> vBuffer = vPlane->getBuffer();
+
+      size_t uvPixelStride = uPlane->getPixelStride();
+      if (uPlane->getPixelStride() != vPlane->getPixelStride()) {
+        [[unlikely]];
+        throw std::runtime_error("U and V planes do not have the same pixel stride! Are you sure this is a 4:2:0 YUV format?");
+      }
+
+      // 1. Convert from YUV -> ARGB
+      int status = libyuv::Android420ToARGB(yBuffer->getDirectBytes(), yPlane->getRowStride(), uBuffer->getDirectBytes(),
+                                            uPlane->getRowStride(), vBuffer->getDirectBytes(), vPlane->getRowStride(), uvPixelStride,
+                                            destination.data(), width * channels * channelSize, width, height);
+
+      if (status != 0) {
+        [[unlikely]];
+        throw std::runtime_error("Failed to convert YUV 4:2:0 to ARGB! Error: " + std::to_string(status));
+      }
+      break;
   }
 
-  return destination;
-}
-
-FrameBuffer ResizePlugin::imageRGBAToFrameBuffer(alias_ref<vision::JImage> image) {
-  __android_log_write(ANDROID_LOG_INFO, TAG, "Converting RGBA 8888 -> ARGB 8888...");
-
-  jni::local_ref<JArrayClass<JImagePlane>> planes = image->getPlanes();
-
-  jni::local_ref<JImagePlane> rgbaPlane = planes->getElement(0);
-  jni::local_ref<JByteBuffer> rgbaBuffer = rgbaPlane->getBuffer();
-
-  int width = image->getWidth();
-  int height = image->getHeight();
-
-  size_t channels = getChannelCount(PixelFormat::ARGB);
-  size_t channelSize = getBytesPerChannel(DataType::UINT8);
-  size_t argbSize = width * height * channels * channelSize;
-  if (_argbBuffer == nullptr || _argbBuffer->getDirectSize() != argbSize) {
-    _argbBuffer = allocateBuffer(argbSize, "_argbBuffer");
-  }
-  FrameBuffer destination = {
-      .width = width,
-      .height = height,
-      .pixelFormat = PixelFormat::ARGB,
-      .dataType = DataType::UINT8,
-      .buffer = _argbBuffer,
-  };
-
-  // 1. Convert from RGBA -> ARGB
-  int status = libyuv::RGBAToARGB(rgbaBuffer->getDirectBytes(), rgbaPlane->getRowStride(), destination.data(),
-                                  width * channels * channelSize, width, height);
-
-  if (status != 0) {
-    [[unlikely]];
-    throw std::runtime_error("Failed to convert RGBA 8888 to ARGB! Error: " + std::to_string(status));
-  }
-
-  return destination;
+  return destination
 }
 
 std::string rectToString(int x, int y, int width, int height) {
@@ -420,17 +404,8 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> im
   DataType dataType = static_cast<DataType>(dataTypeOrdinal);
   Rotation rotation = static_cast<Rotation>(rotationOrdinal);
 
-  FrameBuffer result;
   // 1. Convert from YUV/RGBA -> ARGB
-  switch (sourceImageFormat) {
-    case SourceImageFormat::RGBA_8888:
-      result = imageRGBAToFrameBuffer(image);
-      break;
-
-    default: /* SourceImageFormat.YUV_420_888 */
-      result = imageYUVToFrameBuffer(image);
-      break;
-  }
+  FrameBuffer result = imageToFrameBuffer(image);
 
   // 2. Crop ARGB
   result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
