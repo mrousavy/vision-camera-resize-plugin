@@ -19,6 +19,7 @@ struct JImage : public JavaClass<JImage> {
 public:
   int getWidth() const;
   int getHeight() const;
+  int getFormat() const;
   jni::local_ref<jni::JArrayClass<JImagePlane>> getPlanes() const;
 };
 

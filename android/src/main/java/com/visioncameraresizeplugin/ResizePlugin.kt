@@ -1,6 +1,7 @@
 package com.visioncameraresizeplugin
 
 import android.graphics.ImageFormat
+import android.graphics.PixelFormat as AndroidPixelFormat
 import android.media.Image
 import android.util.Log
 import androidx.annotation.Keep
@@ -141,8 +142,13 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
     val image = frame.image
 
-    if (image.format != ImageFormat.YUV_420_888) {
-      throw Error("Frame has invalid PixelFormat! Only YUV_420_888 is supported. Did you set pixelFormat=\"yuv\"?")
+    if (image.format != ImageFormat.YUV_420_888 && image.format != AndroidPixelFormat.RGBA_8888) {
+      throw Error(
+        """
+          |Frame has invalid PixelFormat! Only YUV_420_888 and  RGBA_8888 are supported. 
+          |Did you set pixelFormat=\"yuv\" or \"rgb\"?
+        """.trimMargin()
+      )
     }
 
     val resized = resize(

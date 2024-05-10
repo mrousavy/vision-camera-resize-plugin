@@ -19,6 +19,9 @@ using namespace jni;
 
 enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
 
+/* Those should match Android ImageFormat and PixelFormat constants */
+enum SourceImageFormat { RGBA_8888 = 1, YUV_420_888 = 35 };
+
 enum DataType { UINT8, FLOAT32 };
 
 enum Rotation { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
