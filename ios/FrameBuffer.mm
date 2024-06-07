@@ -10,7 +10,7 @@
 #import <Accelerate/Accelerate.h>
 #import <Foundation/Foundation.h>
 #import <VisionCamera/SharedArray.h>
-#import <VisionCamera/VisionCameraProxy.h>
+#import <VisionCamera/VisionCameraProxyHolder.h>
 
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
