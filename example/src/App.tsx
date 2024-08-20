@@ -6,7 +6,7 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
-import { Options, useResizePlugin } from 'vision-camera-resize-plugin';
+import { Options, useTransformPlugin } from 'vision-camera-resize-plugin';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   Skia,
@@ -20,8 +20,8 @@ import { createSkiaImageFromData } from './SkiaUtils';
 
 type PixelFormat = Options<'uint8'>['pixelFormat'];
 
-const WIDTH = 480;
-const HEIGHT = 640;
+const WIDTH = 300;
+const HEIGHT = 300;
 const TARGET_TYPE = 'uint8' as const;
 const TARGET_FORMAT: PixelFormat = 'rgba';
 
@@ -34,13 +34,18 @@ export default function App() {
     permission.requestPermission();
   }, [permission]);
 
-  const plugin = useResizePlugin();
+  const { transform } = useTransformPlugin();
 
   const updatePreviewImageFromData = useRunOnJS(
     (data: SkData, pixelFormat: PixelFormat) => {
       const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
+      if (image == null) {
+        data.dispose();
+        return;
+      }
       previewImage.value?.dispose();
       previewImage.value = image;
+      data.dispose();
     },
     []
   );
@@ -51,20 +56,17 @@ export default function App() {
 
       const start = performance.now();
 
-      const result = plugin.resize(frame, {
-        scale: {
-          width: WIDTH,
-          height: HEIGHT,
-        },
+      const result = transform(frame, {
+        transforms: [
+          { type: 'resize', targetSize: { width: WIDTH, height: HEIGHT } },
+          { type: 'mirror' },
+        ],
         dataType: TARGET_TYPE,
         pixelFormat: TARGET_FORMAT,
-        rotation: '90deg',
-        mirror: true,
       });
 
       const data = Skia.Data.fromBytes(result);
       updatePreviewImageFromData(data, TARGET_FORMAT);
-      data.dispose();
       const end = performance.now();
 
       console.log(
@@ -119,5 +121,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     left: 20,
+    borderColor: '#F00',
+    borderWidth: 2,
   },
 });
