@@ -17,7 +17,7 @@
 
 #import "FrameBuffer.h"
 
-typedef NS_ENUM(NSInteger, Transform) { Resize, Crop, Mirror, Rotate, Translate };
+typedef NS_ENUM(NSInteger, Transform) { Resize, Crop, Mirror, Rotate };
 typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
 
 @interface ResizePlugin : FrameProcessorPlugin
@@ -30,6 +30,7 @@ typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation1
   FrameBuffer* _argbBuffer;
   // 2. ARGB (?x?) -> ARGB (!x!)
   FrameBuffer* _resizeBuffer;
+  FrameBuffer* _cropBuffer;
   FrameBuffer* _mirrorBuffer;
   FrameBuffer* _rotateBuffer;
   // 3. ARGB (!x!) -> !!!! (!x!)
@@ -63,8 +64,6 @@ Transform parseTransform(NSString* transformString) {
     return Mirror;
   } else if ([transformString isEqualToString:@"rotate"]) {
     return Rotate;
-  } else if ([transformString isEqualToString:@"translate"]) {
-    return Translate;
   } else {
     [[unlikely]];
     @throw [NSException exceptionWithName:@"Invalid Transform"
@@ -353,6 +352,43 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _resizeBuffer;
 }
 
+- (FrameBuffer*)cropARGBBuffer:(FrameBuffer*)buffer rect:(CGRect)rect {
+  CGFloat cropWidth = rect.size.width;
+  CGFloat cropHeight = rect.size.height;
+  CGFloat cropX = rect.origin.x;
+  CGFloat cropY = rect.origin.y;
+
+  if (buffer.width == cropWidth && buffer.height == cropHeight && cropX == 0 && cropY == 0) {
+    // We are already in the target size.
+    NSLog(@"Skipping crop, buffer is already desired size (%f x %f) and crop offset is zero...", cropWidth, cropHeight);
+    return buffer;
+  }
+
+  NSLog(@"Cropping ARGB_8 Frame to X: %f Y: %f W: %f H: %f...", cropX, cropY, cropWidth, cropHeight);
+
+  if (_cropBuffer == nil || _cropBuffer.width != cropWidth || _cropBuffer.height != cropHeight) {
+    _cropBuffer = [[FrameBuffer alloc] initWithWidth:cropWidth height:cropHeight pixelFormat:buffer.pixelFormat dataType:buffer.dataType proxy:_proxy];
+  }
+  const vImage_Buffer* source = buffer.imageBuffer;
+  const vImage_Buffer* destination = _cropBuffer.imageBuffer;
+
+  vImage_Buffer cropped = (vImage_Buffer){.data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
+                                          .height = (unsigned long)cropHeight,
+                                          .width = (unsigned long)cropWidth,
+                                          .rowBytes = source->rowBytes};
+  
+  vImage_Error error = vImageCopyBuffer(&cropped, destination, 4, kvImageNoFlags);
+  if (error != kvImageNoError) {
+    [[unlikely]];
+    @throw [NSException exceptionWithName:@"Crop Error"
+                                   reason:[NSString stringWithFormat:@"Failed to crop ARGB buffer! Error: %zu", error]
+                                 userInfo:nil];
+  }
+  
+
+  return _cropBuffer;
+}
+
 - (FrameBuffer*)convertInt8Buffer:(FrameBuffer*)buffer toDataType:(ConvertDataType)targetType {
   if (buffer.dataType == targetType) {
     // we are already in the target type
@@ -551,131 +587,55 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
           NSLog(@"ResizePlugin: Resize Transform missing required options - skipping...");
           continue;
         }
-        CGFloat targetWidth = ((NSNumber*)targetSizeDict[@"width"]).doubleValue;
-        CGFloat targetHeight = ((NSNumber*)targetSizeDict[@"height"]).doubleValue;
+        double targetWidth = ((NSNumber*)targetSizeDict[@"width"]).doubleValue;
+        double targetHeight = ((NSNumber*)targetSizeDict[@"height"]).doubleValue;
+        NSLog(@"ResizePlugin: Resize target size: %fx%f", targetWidth, targetHeight);
         result = [self resizeARGB:result targetSize:CGSizeMake(targetWidth, targetHeight)];
         break;
       }
-      case Crop:
+      case Crop: {
+        NSDictionary* rectDict = transformOperation[@"rect"];
+        if (rectDict == nil) {
+          NSLog(@"ResizePlugin: Crop Transform missing required options - skipping...");
+          continue;
+        }
+        double cropWidth = ((NSNumber*)rectDict[@"width"]).doubleValue;
+        double cropHeight = ((NSNumber*)rectDict[@"height"]).doubleValue;
+        double cropX = ((NSNumber*)rectDict[@"x"]).doubleValue;
+        double cropY = ((NSNumber*)rectDict[@"y"]).doubleValue;
+        NSLog(@"ResizePlugin: Cropping to %f x %f, at (%f, %f)", cropWidth, cropHeight, cropX, cropY);
+        result = [self cropARGBBuffer:result rect:CGRectMake(cropX, cropY, cropWidth, cropHeight)];
         break;
+      }
       case Mirror: {
+        NSLog(@"ResizePlugin: Mirror: YES");
         result = [self mirrorARGBBuffer:result mirror:YES];
         break;
       }
-      case Rotate:
+      case Rotate: {
+        NSString* rotationString = transformOperation[@"rotation"];
+        Rotation rotation;
+        if (rotationString != nil) {
+          rotation = parseRotation(rotationString);
+          NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
+        } else {
+          rotation = Rotation0;
+          NSLog(@"ResizePlugin: Rotation not specified, defaulting to: %ld", (long)rotation);
+        }
+        result = [self rotateARGBBuffer:result rotation:rotation];
         break;
-      case Translate:
-        break;
+      }
     }
   }
   
-  // 6. Convert ARGB -> ??? format
+  // 4. Convert ARGB -> ??? format
   result = [self convertARGB:result to:pixelFormat];
 
-  // 7. Convert UINT8 -> ??? type
+  // 5. Convert UINT8 -> ??? type
   result = [self convertInt8Buffer:result toDataType:dataType];
 
-  // 8. Return to JS
+  // 6. Return to JS
   return result.sharedArray;
-  
-  
-  
-  
-  
-  
-  
-  
-//  NSString* transformString = arguments[@"transform"];
-//  Transform transform;
-//  if (transformString != nil) {
-//    transform = parseTransform(transformString);
-//    NSLog(@"ResizePlugin: Transform: %ld", transform);
-//  } else {
-//    transform = Rotation0;
-//    NSLog(@"ResizePlugin: Transform ");
-//  }
-//
-//  // 1. Parse inputs
-//  double scaleWidth = (double)frame.width;
-//  double scaleHeight = (double)frame.height;
-//  NSDictionary* scale = arguments[@"scale"];
-//  if (scale != nil) {
-//    scaleWidth = ((NSNumber*)scale[@"width"]).doubleValue;
-//    scaleHeight = ((NSNumber*)scale[@"height"]).doubleValue;
-//    NSLog(@"ResizePlugin: Scaling to %f x %f.", scaleWidth, scaleHeight);
-//  } else {
-//    NSLog(@"ResizePlugin: No custom scale supplied.");
-//  }
-//
-//  NSString* rotationString = arguments[@"rotation"];
-//  Rotation rotation;
-//  if (rotationString != nil) {
-//    rotation = parseRotation(rotationString);
-//    NSLog(@"ResizePlugin: Rotation: %ld", (long)rotation);
-//  } else {
-//    rotation = Rotation0;
-//    NSLog(@"ResizePlugin: Rotation not specified, defaulting to: %ld", (long)rotation);
-//  }
-//
-//  NSNumber* mirrorParam = arguments[@"mirror"];
-//  BOOL mirror = NO;
-//  if (mirrorParam != nil) {
-//    mirror = [mirrorParam boolValue];
-//  }
-//  NSLog(@"ResizePlugin: Mirror: %@", mirror ? @"YES" : @"NO");
-//
-//  double cropWidth = (double)frame.width;
-//  double cropHeight = (double)frame.height;
-//  double cropX = 0;
-//  double cropY = 0;
-//  NSDictionary* crop = arguments[@"crop"];
-//  if (crop != nil) {
-//    cropWidth = ((NSNumber*)crop[@"width"]).doubleValue;
-//    cropHeight = ((NSNumber*)crop[@"height"]).doubleValue;
-//    cropX = ((NSNumber*)crop[@"x"]).doubleValue;
-//    cropY = ((NSNumber*)crop[@"y"]).doubleValue;
-//    NSLog(@"ResizePlugin: Cropping to %f x %f, at (%f, %f)", cropWidth, cropHeight, cropX, cropY);
-//  } else {
-//    if (scale != nil) {
-//      double aspectRatio = (double)frame.width / (double)frame.height;
-//      double targetAspectRatio = scaleWidth / scaleHeight;
-//
-//      if (aspectRatio > targetAspectRatio) {
-//        // 1920x1080
-//        cropWidth = frame.height * targetAspectRatio;
-//        cropHeight = frame.height;
-//      } else {
-//        // 1080x1920
-//        cropWidth = frame.width;
-//        cropHeight = frame.width / targetAspectRatio;
-//      }
-//      cropX = (frame.width / 2) - (cropWidth / 2);
-//      cropY = (frame.height / 2) - (cropHeight / 2);
-//      NSLog(@"ResizePlugin: Cropping to %f x %f at (%f, %f).", cropWidth, cropHeight, cropX, cropY);
-//    } else {
-//      NSLog(@"ResizePlugin: Both scale and crop are nil, using Frame's original dimensions.");
-//    }
-//  }
-//
-//  // 3. Resize
-//  CGRect cropRect = CGRectMake(cropX, cropY, cropWidth, cropHeight);
-//  CGSize scaleSize = CGSizeMake(scaleWidth, scaleHeight);
-//  result = [self resizeARGB:result crop:cropRect scale:scaleSize];
-//
-//  // 4. Rotate
-//  result = [self rotateARGBBuffer:result rotation:rotation];
-//
-//  // 5. Mirror
-//  result = [self mirrorARGBBuffer:result mirror:mirror];
-//
-//  // 6. Convert ARGB -> ??? format
-//  result = [self convertARGB:result to:pixelFormat];
-//
-//  // 7. Convert UINT8 -> ??? type
-//  result = [self convertInt8Buffer:result toDataType:dataType];
-//
-//  // 8. Return to JS
-//  return result.sharedArray;
 }
 
 VISION_EXPORT_FRAME_PROCESSOR(ResizePlugin, transform);

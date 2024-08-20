@@ -58,8 +58,12 @@ export default function App() {
 
       const result = transform(frame, {
         transforms: [
+          {
+            type: 'crop',
+            rect: { x: 440, y: 860, width: 200, height: 200 },
+          },
           { type: 'resize', targetSize: { width: WIDTH, height: HEIGHT } },
-          { type: 'mirror' },
+          { type: 'rotate', rotation: '180deg' },
         ],
         dataType: TARGET_TYPE,
         pixelFormat: TARGET_FORMAT,
@@ -70,7 +74,7 @@ export default function App() {
       const end = performance.now();
 
       console.log(
-        `Resized ${frame.width}x${frame.height} into 100x100 frame (${
+        `Resized ${frame.width}x${frame.height} into ${WIDTH}x${HEIGHT} frame (${
           result.length
         }) in ${(end - start).toFixed(2)}ms`
       );

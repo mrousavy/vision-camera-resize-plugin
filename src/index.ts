@@ -68,7 +68,7 @@ export type RotationTransform = {
   /**
    * A transform that rotates the Frame Buffer about its center
    */
-  type: 'crop';
+  type: 'rotate';
   /**
    * The degrees the image should be rotated by clockwise
    */
