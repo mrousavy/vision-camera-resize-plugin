@@ -442,31 +442,31 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::transform(jni::alias_ref<JImage>
   // 3. Pass the buffer through the series of transform operations
   for (int i = 0; i < transformOperations->size(); i++) {
       auto transformOperation = transformOperations->getElement(i);
-      auto transformTypeString = transformOperation->getStringValue(make_jstring("type"));
+      auto transformTypeString = transformOperation->getStringValue("type");
       if (!transformTypeString.has_value()) continue;
       auto transform = parseTransform(transformTypeString.value());
       switch (transform) {
           case Resize: {
-              auto targetSizeDict = transformOperation->getMapValue(make_jstring("targetSize"));
+              auto targetSizeDict = transformOperation->getMapValue("targetSize");
               if (!targetSizeDict.has_value()) {
                   __android_log_print(ANDROID_LOG_INFO, TAG, "Resize Transform missing required options - skipping...");
                   continue;
               }
-              auto targetWidth = targetSizeDict.value()->getDoubleValue(make_jstring("width"));
-              auto targetHeight = targetSizeDict.value()->getDoubleValue(make_jstring("height"));
+              auto targetWidth = targetSizeDict.value()->getDoubleValue("width");
+              auto targetHeight = targetSizeDict.value()->getDoubleValue("height");
               result = scaleARGBBuffer(result, targetWidth, targetHeight);
               break;
           }
           case Crop: {
-              auto rectDict = transformOperation->getMapValue(make_jstring("rect"));
+              auto rectDict = transformOperation->getMapValue("rect");
               if (!rectDict.has_value()) {
                   __android_log_print(ANDROID_LOG_INFO, TAG, "Crop Transform missing required options - skipping...");
                   continue;
               }
-              auto cropWidth = rectDict.value()->getDoubleValue(make_jstring("width"));
-              auto cropHeight = rectDict.value()->getDoubleValue(make_jstring("height"));
-              auto cropX = rectDict.value()->getDoubleValue(make_jstring("x"));
-              auto cropY = rectDict.value()->getDoubleValue(make_jstring("y"));
+              auto cropWidth = rectDict.value()->getDoubleValue("width");
+              auto cropHeight = rectDict.value()->getDoubleValue("height");
+              auto cropX = rectDict.value()->getDoubleValue("x");
+              auto cropY = rectDict.value()->getDoubleValue("y");
               result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
               break;
           }
@@ -475,7 +475,7 @@ jni::global_ref<jni::JByteBuffer> ResizePlugin::transform(jni::alias_ref<JImage>
               break;
           }
           case Rotate: {
-              auto rotationString = transformOperation->getStringValue(make_jstring("rotation"));
+              auto rotationString = transformOperation->getStringValue("rotation");
               if (!rotationString.has_value()) {
                   __android_log_print(ANDROID_LOG_INFO, TAG, "Rotate Transform missing required options - skipping...");
                   continue;

@@ -17,11 +17,11 @@ using namespace jni;
 struct JMap : public JavaClass<JMap> {
     static constexpr auto kJavaDescriptor = "Ljava/util/Map;";
 public:
-    std::optional<std::string> getStringValue(alias_ref<JString> key);
-    std::optional<local_ref<JMap>> getMapValue(alias_ref<JString> key);
-    bool getBoolValue(alias_ref<JString> key);
-    int getIntValue(alias_ref<JString> key);
-    double getDoubleValue(alias_ref<JString> key);
+    std::optional<std::string> getStringValue(std::string key);
+    std::optional<local_ref<JMap>> getMapValue(std::string key);
+    bool getBoolValue(std::string key);
+    int getIntValue(std::string key);
+    double getDoubleValue(std::string key);
 };
 
 } // namespace vision
