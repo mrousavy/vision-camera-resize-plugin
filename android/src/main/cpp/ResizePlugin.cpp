@@ -9,6 +9,7 @@
 #include <jni.h>
 #include <media/NdkImage.h>
 
+
 namespace vision {
 
 using namespace facebook;
@@ -16,12 +17,42 @@ using namespace facebook;
 void ResizePlugin::registerNatives() {
   registerHybrid({
       makeNativeMethod("initHybrid", ResizePlugin::initHybrid),
-      makeNativeMethod("resize", ResizePlugin::resize),
+      makeNativeMethod("transform", ResizePlugin::transform),
   });
 }
 
 ResizePlugin::ResizePlugin(const jni::alias_ref<jhybridobject>& javaThis) {
   _javaThis = jni::make_global(javaThis);
+}
+
+Transform parseTransform(std::string transformString) {
+    if (transformString == "resize") {
+        return Resize;
+    } else if (transformString == "crop") {
+        return Crop;
+    } else if (transformString == "mirror") {
+        return Mirror;
+    } else if (transformString == "rotate") {
+        return Rotate;
+    } else {
+        [[unlikely]];
+        throw std::runtime_error("Invalid Transform value: " + transformString);
+    }
+}
+
+Rotation parseRotation(std::string rotationString) {
+    if (rotationString == "0deg") {
+        return Rotation0;
+    } else if (rotationString == "90deg") {
+        return Rotation90;
+    } else if (rotationString == "180deg") {
+        return Rotation180;
+    } else if (rotationString == "270deg") {
+        return Rotation270;
+    } else {
+        [[unlikely]];
+        throw std::runtime_error("Invalid Rotation value: " + rotationString);
+    }
 }
 
 int getChannelCount(PixelFormat pixelFormat) {
@@ -398,34 +429,71 @@ FrameBuffer ResizePlugin::convertBufferToDataType(const FrameBuffer& frameBuffer
   return destination;
 }
 
-jni::global_ref<jni::JByteBuffer> ResizePlugin::resize(jni::alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight,
-                                                       int scaleWidth, int scaleHeight, int /* Rotation */ rotationOrdinal, bool mirror,
+jni::global_ref<jni::JByteBuffer> ResizePlugin::transform(jni::alias_ref<JImage> image, jni::alias_ref<JArrayClass<JMap>> transformOperations,
                                                        int /* PixelFormat */ pixelFormatOrdinal, int /* DataType */ dataTypeOrdinal) {
-  PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
-  DataType dataType = static_cast<DataType>(dataTypeOrdinal);
-  Rotation rotation = static_cast<Rotation>(rotationOrdinal);
 
   // 1. Convert from YUV/RGBA -> ARGB
   FrameBuffer result = imageToFrameBuffer(image);
 
-  // 2. Crop ARGB
-  result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
+  // 2. Parse the pixel format and data type the buffer should be transformed back to (if specified)
+  PixelFormat pixelFormat = static_cast<PixelFormat>(pixelFormatOrdinal);
+  DataType dataType = static_cast<DataType>(dataTypeOrdinal);
 
-  // 3. Scale ARGB
-  result = scaleARGBBuffer(result, scaleWidth, scaleHeight);
+  // 3. Pass the buffer through the series of transform operations
+  for (int i = 0; i < transformOperations->size(); i++) {
+      auto transformOperation = transformOperations->getElement(i);
+      auto transformTypeString = transformOperation->getStringValue(make_jstring("type"));
+      if (!transformTypeString.has_value()) continue;
+      auto transform = parseTransform(transformTypeString.value());
+      switch (transform) {
+          case Resize: {
+              auto targetSizeDict = transformOperation->getMapValue(make_jstring("targetSize"));
+              if (!targetSizeDict.has_value()) {
+                  __android_log_print(ANDROID_LOG_INFO, TAG, "Resize Transform missing required options - skipping...");
+                  continue;
+              }
+              auto targetWidth = targetSizeDict.value()->getDoubleValue(make_jstring("width"));
+              auto targetHeight = targetSizeDict.value()->getDoubleValue(make_jstring("height"));
+              result = scaleARGBBuffer(result, targetWidth, targetHeight);
+              break;
+          }
+          case Crop: {
+              auto rectDict = transformOperation->getMapValue(make_jstring("rect"));
+              if (!rectDict.has_value()) {
+                  __android_log_print(ANDROID_LOG_INFO, TAG, "Crop Transform missing required options - skipping...");
+                  continue;
+              }
+              auto cropWidth = rectDict.value()->getDoubleValue(make_jstring("width"));
+              auto cropHeight = rectDict.value()->getDoubleValue(make_jstring("height"));
+              auto cropX = rectDict.value()->getDoubleValue(make_jstring("x"));
+              auto cropY = rectDict.value()->getDoubleValue(make_jstring("y"));
+              result = cropARGBBuffer(result, cropX, cropY, cropWidth, cropHeight);
+              break;
+          }
+          case Mirror: {
+              result = mirrorARGBBuffer(result, true);
+              break;
+          }
+          case Rotate: {
+              auto rotationString = transformOperation->getStringValue(make_jstring("rotation"));
+              if (!rotationString.has_value()) {
+                  __android_log_print(ANDROID_LOG_INFO, TAG, "Rotate Transform missing required options - skipping...");
+                  continue;
+              }
+              Rotation rotation = parseRotation(rotationString.value());
+              result = rotateARGBBuffer(result, rotation);
+              break;
+          }
+      }
+  }
 
-  // 4. Rotate ARGB
-  result = rotateARGBBuffer(result, rotation);
-
-  // 5 Mirror ARGB if needed
-  result = mirrorARGBBuffer(result, mirror);
-
-  // 6. Convert from ARGB -> ????
+  // 4. Convert from ARGB -> ????
   result = convertARGBBufferTo(result, pixelFormat);
 
-  // 7. Convert from data type to other data type
+  // 5. Convert from data type to other data type
   result = convertBufferToDataType(result, dataType);
 
+  // 6. Return to JS (via JNI)
   return result.buffer;
 }
 
