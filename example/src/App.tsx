@@ -63,8 +63,9 @@ export default function App() {
       });
 
       const data = Skia.Data.fromBytes(result);
-      updatePreviewImageFromData(data, TARGET_FORMAT);
-      data.dispose();
+			updatePreviewImageFromData(data, TARGET_FORMAT).then(() =>
+				data.dispose(),
+			);
       const end = performance.now();
 
       console.log(
