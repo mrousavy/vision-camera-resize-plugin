@@ -1,19 +1,19 @@
-const path = require('path');
-const pak = require('../package.json');
+const path = require("path");
+const pak = require("../package.json");
 
 module.exports = {
-  presets: ['module:@react-native/babel-preset'],
-  plugins: [
-    [
-      'module-resolver',
-      {
-        extensions: ['.tsx', '.ts', '.js', '.json'],
-        alias: {
-          [pak.name]: path.join(__dirname, '..', pak.source),
-        },
-      },
-    ],
-    'react-native-reanimated/plugin',
-    'react-native-worklets-core/plugin',
-  ],
+	presets: ["module:@react-native/babel-preset"],
+	plugins: [
+		[
+			"module-resolver",
+			{
+				extensions: [".tsx", ".ts", ".js", ".json"],
+				alias: {
+					[pak.name]: path.join(__dirname, "..", pak.source),
+				},
+			},
+		],
+		["react-native-reanimated/plugin", { processNestedWorklets: true }],
+		"react-native-worklets-core/plugin",
+	],
 };

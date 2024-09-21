@@ -886,13 +886,13 @@ PODS:
   - React-Mapbuffer (0.73.2):
     - glog
     - React-debug
-  - react-native-skia (1.2.3):
+  - react-native-skia (1.3.11):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React
     - React-callinvoker
     - React-Core
-  - react-native-worklets-core (1.2.0):
+  - react-native-worklets-core (1.3.3):
     - React
     - React-callinvoker
     - React-Core
@@ -1291,8 +1291,8 @@ SPEC CHECKSUMS:
   React-jsinspector: 03644c063fc3621c9a4e8bf263a8150909129618
   React-logger: 66b168e2b2bee57bd8ce9e69f739d805732a5570
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
-  react-native-skia: 61a8a1c161ebf4e677b2d39af880c997d8847313
-  react-native-worklets-core: a316975bba20b73d47aa4d41bffb0ca984ba592e
+  react-native-skia: ebe2bc64718d058a87b1b5be8217dfa8c227f08a
+  react-native-worklets-core: f51430dd07bf5343d4918d28a4bb00fe8f98b982
   React-nativeconfig: d753fbbc8cecc8ae413d615599ac378bbf6999bb
   React-NativeModulesApple: 964f4eeab1b4325e8b6a799cf4444c3fd4eb0a9c
   React-perflogger: 29efe63b7ef5fbaaa50ef6eaa92482f98a24b97e
@@ -1321,4 +1321,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 16d369efc4af0146b63524f111284c80d034c812
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2
