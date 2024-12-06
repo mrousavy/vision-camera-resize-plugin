@@ -41,6 +41,7 @@ export default function App() {
       const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
       previewImage.value?.dispose();
       previewImage.value = image;
+      data.dispose();
     },
     []
   );
@@ -63,9 +64,7 @@ export default function App() {
       });
 
       const data = Skia.Data.fromBytes(result);
-			updatePreviewImageFromData(data, TARGET_FORMAT).then(() =>
-				data.dispose(),
-			);
+      updatePreviewImageFromData(data, TARGET_FORMAT);
       const end = performance.now();
 
       console.log(
