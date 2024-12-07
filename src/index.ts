@@ -46,6 +46,11 @@ export interface Options<T extends DataType> {
    */
   scale?: Size;
   /**
+   * If set to `true`, the image will be resized to to fit within the dimensions specified by
+   * scale and padded, maintaining the aspect ratio of the original image.
+   */
+  preserveAspectRatio?: boolean;
+  /**
    * Rotate the image by a given amount of degrees, clockwise.
    * @default '0deg'
    */
