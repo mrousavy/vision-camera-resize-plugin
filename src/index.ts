@@ -9,47 +9,87 @@ export type OutputArray<T extends DataType> = T extends 'uint8'
     : never;
 
 interface Size {
-  /**
-   * The width to resize the Frame to.
-   */
   width: number;
-  /**
-   * The height to resize the Frame to.
-   */
   height: number;
 }
 
 interface Rect extends Size {
-  /**
-   * The origin X of the Frame used for cropping. If not set, a center-crop will be performed.
-   */
   x: number;
-  /**
-   * The origin Y of the Frame used for cropping. If not set, a center-crop will be performed.
-   */
   y: number;
 }
 
+// /**
+//    * If set to `true`, the image will be mirrored horizontally.
+//    */
+// mirror?: boolean;
+// /**
+//  * Crops the image to the given target rect. This is applied first before scaling.
+//  *
+//  * If this is not set, a center-crop to the given target aspect ratio is automatically calculated.
+//  */
+// crop?: Rect;
+// /**
+//  * Scale the image to the given target size. This is applied after cropping.
+//  */
+// scale?: Size;
+// /**
+//  * Rotate the image by a given amount of degrees, clockwise.
+//  * @default '0deg'
+//  */
+// rotation?: '0deg' | '90deg' | '180deg' | '270deg';
+
+export type ResizeTransform = {
+  /**
+   * A transform that changes the dimensions of the Frame Buffer
+   */
+  type: 'resize';
+  /**
+   * The size the image will be resized to
+   */
+  targetSize: Size;
+};
+export type MirrorTransform = {
+  /**
+   * A transform that mirrors the Frame Buffer horizontally
+   */
+  type: 'mirror';
+};
+export type CropTransform = {
+  /**
+   * A transform that crops out a subsection of the Frame Buffer
+   */
+  type: 'crop';
+  /**
+   * The rectangular subsection of the image to be cropped
+   */
+  rect: Rect;
+};
+export type RotationTransform = {
+  /**
+   * A transform that rotates the Frame Buffer about its center
+   */
+  type: 'rotate';
+  /**
+   * The degrees the image should be rotated by clockwise
+   */
+  rotation: '0deg' | '90deg' | '180deg' | '270deg';
+};
+export type Transform =
+  | ResizeTransform
+  | MirrorTransform
+  | CropTransform
+  | RotationTransform;
+
 export interface Options<T extends DataType> {
   /**
-   * If set to `true`, the image will be mirrored horizontally.
-   */
-  mirror?: boolean;
-  /**
-   * Crops the image to the given target rect. This is applied first before scaling.
+   * The set of transform operations the Frame should be passed through to produce
+   * the final transformed Frame Buffer.
    *
-   * If this is not set, a center-crop to the given target aspect ratio is automatically calculated.
+   * These are applied sequentially with the result of the last operation being
+   * passed as the input for the next, allowing for a composable set of transforms
+   * to be applied.
    */
-  crop?: Rect;
-  /**
-   * Scale the image to the given target size. This is applied after cropping.
-   */
-  scale?: Size;
-  /**
-   * Rotate the image by a given amount of degrees, clockwise.
-   * @default '0deg'
-   */
-  rotation?: '0deg' | '90deg' | '180deg' | '270deg';
+  transforms: Transform[];
   /**
    * Convert the Frame to the given target pixel format.
    *
@@ -72,42 +112,46 @@ export interface Options<T extends DataType> {
 }
 
 /**
- * An instance of the resize plugin.
+ * An instance of the transform plugin.
  *
- * All temporary memory buffers allocated by the resize plugin
+ * All temporary memory buffers allocated by the transform plugin
  * will be deleted once this value goes out of scope.
  */
-export interface ResizePlugin {
+export interface TransformPlugin {
   /**
-   * Resizes the given Frame to the target width/height and
-   * convert it to the given pixel format.
+   * Transforms the given Frame sequentially through the transformation operations
+   * and converts the result to the given pixel format and data type
    */
-  resize<T extends DataType>(frame: Frame, options: Options<T>): OutputArray<T>;
+  transform<T extends DataType>(
+    frame: Frame,
+    options: Options<T>
+  ): OutputArray<T>;
 }
 
 /**
- * Get a new instance of the resize plugin.
+ * Get a new instance of the transform plugin.
  *
- * All temporary memory buffers allocated by the resize plugin
+ * All temporary memory buffers allocated by the transform plugin
  * will be deleted once the returned value goes out of scope.
  */
-export function createResizePlugin(): ResizePlugin {
-  const resizePlugin = VisionCameraProxy.initFrameProcessorPlugin('resize');
+export function createTransformPlugin(): TransformPlugin {
+  const transformPlugin =
+    VisionCameraProxy.initFrameProcessorPlugin('transform');
 
-  if (resizePlugin == null) {
+  if (transformPlugin == null) {
     throw new Error(
       'Cannot find vision-camera-resize-plugin! Did you install the native dependency properly?'
     );
   }
 
   return {
-    resize: <T extends DataType>(
+    transform: <T extends DataType>(
       frame: Frame,
       options: Options<T>
     ): OutputArray<T> => {
       'worklet';
       // @ts-expect-error
-      const arrayBuffer = resizePlugin.call(frame, options) as ArrayBuffer;
+      const arrayBuffer = transformPlugin.call(frame, options) as ArrayBuffer;
 
       switch (options.dataType) {
         case 'uint8':
@@ -124,11 +168,11 @@ export function createResizePlugin(): ResizePlugin {
 }
 
 /**
- * Use an instance of the resize plugin.
+ * Use an instance of the transform plugin.
  *
- * All temporary memory buffers allocated by the resize plugin
- * will be deleted once the component that uses `useResizePlugin()` unmounts.
+ * All temporary memory buffers allocated by the transform plugin
+ * will be deleted once the component that uses `useTransformPlugin()` unmounts.
  */
-export function useResizePlugin(): ResizePlugin {
-  return useMemo(() => createResizePlugin(), []);
+export function useTransformPlugin(): TransformPlugin {
+  return useMemo(() => createTransformPlugin(), []);
 }
