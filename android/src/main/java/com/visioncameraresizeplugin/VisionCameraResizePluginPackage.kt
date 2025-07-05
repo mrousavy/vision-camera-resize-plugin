@@ -10,7 +10,7 @@ import com.mrousavy.camera.frameprocessors.FrameProcessorPluginRegistry
 class VisionCameraResizePluginPackage : TurboReactPackage() {
   companion object {
     init {
-      FrameProcessorPluginRegistry.addFrameProcessorPlugin("resize") { proxy, _ ->
+      FrameProcessorPluginRegistry.addFrameProcessorPlugin("transform") { proxy, _ ->
         ResizePlugin(proxy)
       }
     }

@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.jni.annotations.DoNotStrip
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
 import com.mrousavy.camera.frameprocessors.Frame
 import com.mrousavy.camera.frameprocessors.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessors.SharedArray
@@ -32,16 +34,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
   }
 
   private external fun initHybrid(): HybridData
-  private external fun resize(
+  private external fun transform(
     image: Image,
-    cropX: Int,
-    cropY: Int,
-    cropWidth: Int,
-    cropHeight: Int,
-    scaleWidth: Int,
-    scaleHeight: Int,
-    rotation: Int,
-    mirror: Boolean,
+    transformOperations: Array<Map<String, Any?>>,
     pixelFormat: Int,
     dataType: Int
   ): ByteBuffer
@@ -49,95 +44,6 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
   override fun callback(frame: Frame, params: MutableMap<String, Any>?): Any {
     if (params == null) {
       throw Error("Options cannot be null!")
-    }
-
-    var cropWidth = frame.width
-    var cropHeight = frame.height
-    var cropX = 0
-    var cropY = 0
-    var scaleWidth = frame.width
-    var scaleHeight = frame.height
-    var targetFormat = PixelFormat.ARGB
-    var targetType = DataType.UINT8
-
-    val rotationParam = params["rotation"]
-    val rotation: Rotation
-    if (rotationParam is String) {
-      rotation = Rotation.fromString(rotationParam)
-      Log.i(TAG, "Rotation: ${rotation.degrees}")
-    } else {
-      rotation = Rotation.Rotation0
-      Log.i(TAG, "Rotation not specified, defaulting to: ${rotation.degrees}")
-    }
-
-    val mirrorParam = params["mirror"]
-    val mirror: Boolean
-    if (mirrorParam is Boolean) {
-      mirror = mirrorParam
-      Log.i(TAG, "Mirror: $mirror")
-    } else {
-      mirror = false
-      Log.i(TAG, "Mirror not specified, defaulting to: $mirror")
-    }
-
-    val scale = params["scale"] as? Map<*, *>
-    if (scale != null) {
-      val scaleWidthDouble = scale["width"] as? Double
-      val scaleHeightDouble = scale["height"] as? Double
-      if (scaleWidthDouble != null && scaleHeightDouble != null) {
-        scaleWidth = scaleWidthDouble.toInt()
-        scaleHeight = scaleHeightDouble.toInt()
-      } else {
-        throw Error("Failed to parse values in scale dictionary!")
-      }
-      Log.i(TAG, "Target scale: $scaleWidth x $scaleHeight")
-    }
-
-    val crop = params["crop"] as? Map<*, *>
-    if (crop != null) {
-      val cropWidthDouble = crop["width"] as? Double
-      val cropHeightDouble = crop["height"] as? Double
-      val cropXDouble = crop["x"] as? Double
-      val cropYDouble = crop["y"] as? Double
-      if (cropWidthDouble != null && cropHeightDouble != null && cropXDouble != null && cropYDouble != null) {
-        cropWidth = cropWidthDouble.toInt()
-        cropHeight = cropHeightDouble.toInt()
-        cropX = cropXDouble.toInt()
-        cropY = cropYDouble.toInt()
-        Log.i(TAG, "Target size: $cropWidth x $cropHeight")
-      } else {
-        throw Error("Failed to parse values in crop dictionary!")
-      }
-    } else {
-      if (scale != null) {
-        val aspectRatio = frame.width.toDouble() / frame.height.toDouble()
-        val targetAspectRatio = scaleWidth.toDouble() / scaleHeight.toDouble()
-
-        if (aspectRatio > targetAspectRatio) {
-          cropWidth = (frame.height * targetAspectRatio).toInt()
-          cropHeight = frame.height
-        } else {
-          cropWidth = frame.width
-          cropHeight = (frame.width / targetAspectRatio).toInt()
-        }
-        cropX = (frame.width / 2) - (cropWidth / 2)
-        cropY = (frame.height / 2) - (cropHeight / 2)
-        Log.i(TAG, "Cropping to $cropWidth x $cropHeight at ($cropX, $cropY)")
-      } else {
-        Log.i(TAG, "Both scale and crop are null, using Frame's original dimensions.")
-      }
-    }
-
-    val formatString = params["pixelFormat"] as? String
-    if (formatString != null) {
-      targetFormat = PixelFormat.fromString(formatString)
-      Log.i(TAG, "Target Format: $targetFormat")
-    }
-
-    val dataTypeString = params["dataType"] as? String
-    if (dataTypeString != null) {
-      targetType = DataType.fromString(dataTypeString)
-      Log.i(TAG, "Target DataType: $targetType")
     }
 
     val image = frame.image
@@ -151,13 +57,34 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       )
     }
 
-    val resized = resize(
+    var targetFormat = PixelFormat.ARGB
+    var targetType = DataType.UINT8
+
+    val formatString = params["pixelFormat"] as? String
+    if (formatString != null) {
+      targetFormat = PixelFormat.fromString(formatString)
+      Log.i(TAG, "Target Format: $targetFormat")
+    }
+
+    val dataTypeString = params["dataType"] as? String
+    if (dataTypeString != null) {
+      targetType = DataType.fromString(dataTypeString)
+      Log.i(TAG, "Target DataType: $targetType")
+    }
+
+    val transformOperations = arrayListOf<Map<String, Any?>>()
+    val transformsParamArray = params["transforms"] as? List<*>
+    if (transformsParamArray != null) {
+      for (element in transformsParamArray) {
+        val transformOp = element ?: continue
+        if (transformOp as? Map<String, *> == null) continue
+        transformOperations.add(transformOp)
+      }
+    }
+
+    val resized = transform(
       image,
-      cropX, cropY,
-      cropWidth, cropHeight,
-      scaleWidth, scaleHeight,
-      rotation.degrees,
-      mirror,
+      transformOperations.toTypedArray(),
       targetFormat.ordinal,
       targetType.ordinal
     )
@@ -201,23 +128,5 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
           else -> throw Error("Invalid DataType! ($string)")
         }
     }
-  }
-}
-
-private enum class Rotation(val degrees: Int) {
-  Rotation0(0),
-  Rotation90(90),
-  Rotation180(180),
-  Rotation270(270);
-
-  companion object {
-    fun fromString(value: String): Rotation =
-      when (value) {
-        "0deg" -> Rotation0
-        "90deg" -> Rotation90
-        "180deg" -> Rotation180
-        "270deg" -> Rotation270
-        else -> throw Error("Invalid rotation value! ($value)")
-      }
   }
 }
