@@ -123,6 +123,7 @@ android {
             "**/libreact_nativemodule_core.so",
             "**/libjscexecutor.so"
     ]
+    pickFirst "META-INF/**"
   }
 }
 
