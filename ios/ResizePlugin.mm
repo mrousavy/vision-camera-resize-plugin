@@ -14,6 +14,7 @@
 #import <Accelerate/Accelerate.h>
 #import <memory>
 #import <utility>
+#import <mutex>
 
 #import "FrameBuffer.h"
 
@@ -39,6 +40,11 @@ typedef NS_ENUM(NSInteger, Rotation) { Rotation0 = 0, Rotation90 = 90, Rotation1
   // Cache
   void* _tempResizeBuffer;
   VisionCameraProxyHolder* _proxy;
+
+  // Protect internal cached buffers & temporary pointers.
+  // In rare cases, frame processor invocations can overlap and mutate these
+  // shared buffers concurrently, causing EXC_BAD_ACCESS.
+  std::mutex _mutex;
 }
 
 - (instancetype)initWithProxy:(VisionCameraProxyHolder*)proxy withOptions:(NSDictionary*)options {
@@ -491,6 +497,13 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 }
 
 - (id)callback:(Frame*)frame withArguments:(NSDictionary*)arguments {
+
+  // Ensure thread-safety for internal cached buffers.
+  // VisionCamera frame processor callbacks are usually serialized, but on some
+  // configurations it's possible to have overlapping invocations (e.g., fast
+  // start/stop, app backgrounding, or pipeline backpressure). Because this plugin
+  // reuses mutable cached buffers, we guard all native processing with a mutex.
+  std::lock_guard<std::mutex> lock(_mutex);
 
   // 1. Parse inputs
   double scaleWidth = (double)frame.width;

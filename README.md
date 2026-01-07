@@ -10,6 +10,9 @@ A [VisionCamera](https://github.com/mrousavy/react-native-vision-camera) Frame P
     yarn add vision-camera-resize-plugin
     cd ios && pod install
     ```
+## fix: memory leak
+see [issue](https://github.com/mrousavy/vision-camera-resize-plugin/issues/82)
+see bug log info in dir 'bug_log/*.txt'
 
 ## Usage
 

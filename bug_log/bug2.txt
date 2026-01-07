@@ -1,0 +1,128 @@
+2026-01-06 14:59:29.283  6909-605   CAWARENESS...hangeFence com.huawei.hiai.engineservice        I  lastReport dlxsoft.szstgface, packageName is com.huawei.android.launcher
+2026-01-06 14:59:29.283  3166-19201 HwLauncher              com.huawei.android.launcher          W  ExitAppAnimationManager getAnimationInfoMyself, mAnimationInfo = {ExitAnimationInfo: {ShortcutInfo: 数智刷脸, component: ComponentInfo{dlxsoft.szstgface/dlxsoft.szstgface.MainActivity}, id: 384, container: -100CellIndex:Container:-100, ScreenId:7, ScreenIndex:-1, Cell(3, 4) Spans(1, 1) null}}
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666] JNI ERROR (app bug): global reference table overflow (max=51200)global reference table dump:
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]   Last 10 entries (of 51199):
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51198: 0x13dfad20 java.nio.DirectByteBuffer
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51197: 0x13dfad20 java.nio.DirectByteBuffer
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51196: 0x1368e850 com.mrousavy.camera.frameprocessors.SharedArray
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51195: 0x1368de50 com.mrousavy.camera.frameprocessors.Frame
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51194: 0x1368d168 com.mrousavy.camera.frameprocessors.Frame
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51193: 0x13dfad20 java.nio.DirectByteBuffer
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51192: 0x13dfad20 java.nio.DirectByteBuffer
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51191: 0x1368ba08 com.mrousavy.camera.frameprocessors.SharedArray
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51190: 0x1368c480 com.mrousavy.camera.frameprocessors.Frame
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     51189: 0x1368b000 com.mrousavy.camera.frameprocessors.Frame
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]   Summary:
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     33130 of java.nio.DirectByteBuffer (330 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]     16400 of com.mrousavy.camera.frameprocessors.SharedArray (16400 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]      1018 of com.mrousavy.camera.frameprocessors.Frame (1018 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]       458 of java.lang.Class (339 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]        23 of com.facebook.react.runtime.ReactHostInspectorTarget$UIThreadConditionalSyncExecutor (1 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]        23 of android.media.PlayerBase$IPlayerWrapper (23 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]        10 of com.visioncameraresizeplugin.ResizePlugin (5 unique instances)
+2026-01-06 14:59:29.296 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         9 of java.lang.ref.WeakReference (9 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         5 of com.facebook.react.bridge.ReadableType (5 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         4 of com.margelo.nitro.nitroinspireface.HybridAssetManager (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of com.facebook.react.fabric.FabricUIManager (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of java.lang.String (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of dalvik.system.PathClassLoader (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of android.opengl.EGLSurface (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of android.opengl.EGLContext (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of android.opengl.EGLDisplay (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of android.content.ContentProvider$Transport (3 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         3 of android.database.ContentObserver$Transport (3 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.mrousavy.camera.frameprocessors.VisionCameraScheduler (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.mrousavy.camera.frameprocessors.VisionCameraProxy (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.swmansion.worklets.AndroidUIScheduler (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.swmansion.reanimated.layoutReanimation.LayoutAnimations (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.facebook.react.modules.blob.BlobModule (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of android.hardware.camera2.CameraManager$CameraManagerGlobal (1 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.facebook.react.bridge.queue.MessageQueueThreadImpl (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of com.facebook.react.bridge.RuntimeExecutor (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of java.lang.ThreadGroup (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of float[] (16 elements) (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of int[] (16 elements) (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of java.lang.reflect.Method (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         2 of android.view.ViewRootImpl$W (2 unique instances)
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.huawei.hwaps.EventAnalyzed$ApsManagerServiceCallback
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.shopify.reactnative.skia.RNSkiaModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.systeminfo.AndroidInfoModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.mrousavy.camera.react.CameraViewModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.rnscreens.ScreensModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.devsupport.LogBoxModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.rnscreens.NativeProxy
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.bridge.RuntimeScheduler
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.reanimated.ReanimatedModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.zmxv.RNSound.SoundModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.margelo.rnquicksqlite.SequelModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.worklets.WorkletsModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.debug.SourceCodeModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.core.ExceptionsManagerModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.worklets.WorkletsModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.devsupport.CxxInspectorPackagerConnection$DelegateImpl$2
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.runtime.ReactInstance$ReactJsExceptionHandlerImpl
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.rnfs.RNFSManager
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.debug.DevSettingsModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.zoontek.rnpermissions.RNPermissionsModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.margelo.nitro.NitroModules
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.runtime.ReactInstance$$ExternalSyntheticLambda1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.runtime.ReactInstance$$ExternalSyntheticLambda2
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.runtime.ReactInstance$$ExternalSyntheticLambda3
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.runtime.ReactInstance$$ExternalSyntheticLambda4
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.core.JavaTimerManager
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.devsupport.CxxInspectorPackagerConnection$DelegateImpl
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.th3rdwave.safeareacontext.SafeAreaContextModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.mrousavy.camera.react.CameraDevicesManager
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.turbomodule.core.NativeMethodCallInvokerHolderImpl
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.mrousavy.mmkv.MmkvPlatformContextModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.worklets.WorkletsMessageQueueThread
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.shopify.reactnative.skia.PlatformContext
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.shopify.reactnative.skia.SkiaManager
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.swmansion.reanimated.NativeProxy
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.defaults.DefaultNewArchitectureEntryPoint$load$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.defaults.DefaultTurboModuleManagerDelegate
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.blob.FileReaderModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.deviceinfo.DeviceInfoModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.devloading.DevLoadingModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.sound.SoundManagerModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.statusbar.StatusBarModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.websocket.WebSocketModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.turbomodule.core.CallInvokerHolderImpl
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.animated.NativeAnimatedModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.dialog.DialogModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.reactdevtoolssettings.ReactDevToolsSettingsManagerModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.devtoolsruntimesettings.ReactDevToolsRuntimeSettingsModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.core.DeviceEventManagerModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.i18nmanager.I18nManagerModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.appearance.AppearanceModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.appstate.AppStateModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.network.NetworkingModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.image.ImageLoaderModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of com.facebook.react.modules.intent.IntentModule
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of java.nio.ByteOrder
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of dalvik.system.VMRuntime
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.graphics.HardwareRenderer$ProcessInitializer$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.view.inputmethod.InputMethodManager$ControlledInputConnectionWrapper
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.view.WindowManagerGlobal$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.hardware.camera2.impl.CameraDeviceImpl$CameraDeviceCallbacks
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.app.LoadedApk$ReceiverDispatcher$InnerReceiver
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.hardware.display.DisplayManagerGlobal$DisplayManagerCallback
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.view.accessibility.AccessibilityManager$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.view.inputmethod.InputMethodManager$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.app.ActivityThread$ApplicationThread
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.graphics.SurfaceTexture
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.hardware.camera2.impl.CameraDeviceImpl
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]         1 of android.os.PersistableBundle$1
+2026-01-06 14:59:29.297 17355-17355 xsoft.szstgfac          dlxsoft.szstgface                    A  java_vm_ext.cc:666]
+2026-01-06 14:59:29.330  5768-6013  HiDecision              com.huawei.recsys                    D  AwarenessListeningReceiver: {"column2":"com.huawei.android.launcher.unihome.UniHomeLauncher","elapsed_realtime":689157563487401,"lastPackageName":"dlxsoft.szstgface","column0":"com.huawei.android.launcher","dataType":1000,"timestamp":1767682769254}
+2026-01-06 14:59:29.333  5768-6013  HiDecision              com.huawei.recsys                    D  AwarenessListeningReceiver: REGISTER_APP_LIFE_FENCE_CALLBACK_INTENT {"column2":"com.huawei.android.launcher.unihome.UniHomeLauncher","elapsed_realtime":689157563487401,"lastPackageName":"dlxsoft.szstgface","column0":"com.huawei.android.launcher","dataType":1000,"timestamp":1767682769254}
+2026-01-06 14:59:29.367  2912-4043  PG_ash                  com.huawei.iaware                    I  dlxsoft.szstgface become invisible
+2026-01-06 14:59:29.523  1628-2059  InputDispatcher         system_server                        W  channel '9ff64b1 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity (server)' ~ Consumer closed input channel or an error occurred.  events=0x9
+2026-01-06 14:59:29.523  1628-2059  InputDispatcher         system_server                        E  channel '9ff64b1 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity (server)' ~ Channel is unrecoverably broken and will be disposed!
+2026-01-06 14:59:29.523  1628-2059  WindowManager           system_server                        I  WINDOW DIED Window{9ff64b1 u0 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity}
+2026-01-06 14:59:29.524  1628-2059  WindowManager           system_server                        I  removeIfPossible: Window{9ff64b1 u0 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity} callers=com.android.server.wm.WindowState.removeIfPossible:5171052 com.android.server.wm.InputManagerCallback.notifyInputChannelBroken:3966628 com.android.server.input.InputManagerService.notifyInputChannelBroken:3982804 <bottom of call stack> <bottom of call stack>
+2026-01-06 14:59:29.524  1628-2059  InputDispatcher         system_server                        W  Attempted to unregister already unregistered input channel '9ff64b1 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity (server)'
+2026-01-06 14:59:29.525  1628-2059  WindowManager           system_server                        I  Not removing Window{9ff64b1 u0 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity EXITING} due to exit animation
+2026-01-06 14:59:29.531  1628-2152  InputDispatcher         system_server                        D  Window handle Window{9ff64b1 u0 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity} has no registered input channel
+2026-01-06 14:59:29.544  1628-3148  WindowManager           system_server                        I  WIN DEATH: Window{9ff64b1 u0 dlxsoft.szstgface/dlxsoft.szstgface.MainActivity EXITING}
+2026-0
