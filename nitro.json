@@ -1,0 +1,18 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["visioncameraresizeplugin"],
+  "ios": {
+    "iosModuleName": "VisionCameraResizePlugin"
+  },
+  "android": {
+    "androidNamespace": ["visioncameraresizeplugin"],
+    "androidCxxLibName": "VisionCameraResizePlugin"
+  },
+  "autolinking": {
+    "ResizePlugin": {
+      "swift": "HybridResizePlugin",
+      "kotlin": "HybridResizePlugin"
+    }
+  },
+  "ignorePaths": ["**/node_modules"]
+}

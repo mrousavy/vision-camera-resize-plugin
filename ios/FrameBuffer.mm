@@ -9,19 +9,16 @@
 #import "FrameBuffer.h"
 #import <Accelerate/Accelerate.h>
 #import <Foundation/Foundation.h>
-#import <VisionCamera/SharedArray.h>
-#import <VisionCamera/VisionCameraProxyHolder.h>
 
 @implementation FrameBuffer {
   vImage_Buffer _imageBuffer;
-  SharedArray* _sharedArray;
+  void* _data;
 }
 
 - (instancetype)initWithWidth:(size_t)width
                        height:(size_t)height
                   pixelFormat:(ConvertPixelFormat)pixelFormat
-                     dataType:(ConvertDataType)dataType
-                        proxy:(VisionCameraProxyHolder*)proxy {
+                     dataType:(ConvertDataType)dataType {
   if (self = [super init]) {
     _width = width;
     _height = height;
@@ -29,18 +26,27 @@
     _dataType = dataType;
 
     size_t bytesPerPixel = [FrameBuffer getBytesPerPixel:pixelFormat withType:dataType];
-    size_t size = width * height * bytesPerPixel;
-    NSLog(@"Allocating SharedArray (size: %zu)...", size);
-    _sharedArray = [[SharedArray alloc] initWithProxy:proxy allocateWithSize:size];
-    _imageBuffer = vImage_Buffer{.width = width, .height = height, .data = _sharedArray.data, .rowBytes = width * bytesPerPixel};
+    _size = width * height * bytesPerPixel;
+    _data = malloc(_size);
+    if (_data == nil) {
+      @throw [NSException exceptionWithName:@"FrameBuffer allocation error"
+                                     reason:[NSString stringWithFormat:@"Failed to allocate %zu bytes", _size]
+                                   userInfo:nil];
+    }
+    _imageBuffer = vImage_Buffer{.width = width, .height = height, .data = _data, .rowBytes = width * bytesPerPixel};
   }
   return self;
+}
+
+- (void)dealloc {
+  free(_data);
 }
 
 @synthesize width = _width;
 @synthesize height = _height;
 @synthesize pixelFormat = _pixelFormat;
 @synthesize dataType = _dataType;
+@synthesize size = _size;
 
 - (size_t)channelsPerPixel {
   return [FrameBuffer getChannelsPerPixelForFormat:_pixelFormat];
@@ -52,8 +58,8 @@
   return self.channelsPerPixel * self.bytesPerChannel;
 }
 
-- (SharedArray*)sharedArray {
-  return _sharedArray;
+- (void*)data {
+  return _data;
 }
 
 - (const vImage_Buffer*)imageBuffer {

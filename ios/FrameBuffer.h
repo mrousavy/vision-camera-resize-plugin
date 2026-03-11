@@ -9,9 +9,8 @@
 #pragma once
 
 #import <Accelerate/Accelerate.h>
+#import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
-#import <VisionCamera/SharedArray.h>
-#import <VisionCamera/VisionCameraProxyHolder.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,8 +23,7 @@ typedef NS_ENUM(NSInteger, ConvertDataType) { UINT8, FLOAT32 };
 - (instancetype)initWithWidth:(size_t)width
                        height:(size_t)height
                   pixelFormat:(ConvertPixelFormat)pixelFormat
-                     dataType:(ConvertDataType)dataType
-                        proxy:(VisionCameraProxyHolder*)proxy;
+                     dataType:(ConvertDataType)dataType;
 
 @property(nonatomic, readonly) size_t width;
 @property(nonatomic, readonly) size_t height;
@@ -35,9 +33,10 @@ typedef NS_ENUM(NSInteger, ConvertDataType) { UINT8, FLOAT32 };
 @property(nonatomic, readonly) size_t channelsPerPixel;
 @property(nonatomic, readonly) size_t bytesPerChannel;
 @property(nonatomic, readonly) size_t bytesPerPixel;
+@property(nonatomic, readonly) size_t size;
+@property(nonatomic, readonly, nonnull) void* data;
 
 @property(nonatomic, readonly, nonnull) const vImage_Buffer* imageBuffer;
-@property(nonatomic, readonly, nonnull) SharedArray* sharedArray;
 
 + (size_t)getBytesForDataType:(ConvertDataType)type;
 + (size_t)getChannelsPerPixelForFormat:(ConvertPixelFormat)format;

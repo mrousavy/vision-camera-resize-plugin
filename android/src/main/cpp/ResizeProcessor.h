@@ -18,12 +18,8 @@ using namespace facebook;
 using namespace jni;
 
 enum PixelFormat { RGB, BGR, ARGB, RGBA, BGRA, ABGR };
-
-/* Those should match Android ImageFormat and PixelFormat constants */
 enum SourceImageFormat { RGBA_8888 = 1, YUV_420_888 = 35 };
-
 enum DataType { UINT8, FLOAT32 };
-
 enum Rotation { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
 
 struct FrameBuffer {
@@ -37,17 +33,16 @@ struct FrameBuffer {
   int bytesPerRow() const;
 };
 
-struct ResizePlugin : public HybridClass<ResizePlugin> {
+struct ResizeProcessor : public HybridClass<ResizeProcessor> {
 public:
-  static auto constexpr kJavaDescriptor = "Lcom/visioncameraresizeplugin/ResizePlugin;";
+  static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/visioncameraresizeplugin/ResizeProcessor;";
   static void registerNatives();
 
 private:
-  explicit ResizePlugin(const alias_ref<jhybridobject>& javaThis);
+  explicit ResizeProcessor(const alias_ref<jhybridobject>& javaThis);
 
   global_ref<JByteBuffer> resize(alias_ref<JImage> image, int cropX, int cropY, int cropWidth, int cropHeight, int scaleWidth,
-                                 int scaleHeight, int /* Rotation */ rotation, bool mirror, int /* PixelFormat */ pixelFormat,
-                                 int /* DataType */ dataType);
+                                 int scaleHeight, int rotation, bool mirror, int pixelFormat, int dataType);
 
   FrameBuffer imageToFrameBuffer(alias_ref<JImage> image);
   FrameBuffer cropARGBBuffer(const FrameBuffer& frameBuffer, int x, int y, int width, int height);
@@ -59,19 +54,15 @@ private:
   global_ref<JByteBuffer> allocateBuffer(size_t size, std::string debugName);
 
 private:
-  static auto constexpr TAG = "ResizePlugin";
+  static auto constexpr TAG = "ResizeProcessor";
   friend HybridBase;
   global_ref<javaobject> _javaThis;
-  // YUV (?x?) -> ARGB (?x?)
   global_ref<JByteBuffer> _argbBuffer;
-  // ARGB (?x?) -> ARGB (!x!)
   global_ref<JByteBuffer> _cropBuffer;
   global_ref<JByteBuffer> _scaleBuffer;
   global_ref<JByteBuffer> _rotatedBuffer;
   global_ref<JByteBuffer> _mirrorBuffer;
-  // ARGB (?x?) -> !!!! (?x?)
   global_ref<JByteBuffer> _customFormatBuffer;
-  // Custom Data Type (e.g. float32)
   global_ref<JByteBuffer> _customTypeBuffer;
 
   static local_ref<jhybriddata> initHybrid(alias_ref<jhybridobject> javaThis);

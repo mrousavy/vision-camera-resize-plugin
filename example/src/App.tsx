@@ -1,91 +1,101 @@
-import * as React from 'react';
-import { StyleSheet, View } from 'react-native';
+import * as React from 'react'
+import { StyleSheet, View } from 'react-native'
 import {
   Camera,
+  type Orientation,
   useCameraDevice,
   useCameraPermission,
-  useFrameProcessor,
-} from 'react-native-vision-camera';
-import { Options, useResizePlugin } from 'vision-camera-resize-plugin';
-import { useSharedValue } from 'react-native-reanimated';
+  useFrameOutput,
+} from 'react-native-vision-camera'
 import {
-  Skia,
-  Image,
-  SkData,
-  Canvas,
-  SkImage,
-} from '@shopify/react-native-skia';
-import { useRunOnJS } from 'react-native-worklets-core';
-import { createSkiaImageFromData } from './SkiaUtils';
+  type Options,
+  VisionCameraResizePlugin,
+} from 'vision-camera-resize-plugin'
+import { useSharedValue } from 'react-native-reanimated'
+import { Canvas, Image, SkData, Skia, SkImage } from '@shopify/react-native-skia'
+import { runOnJS } from 'react-native-worklets'
 
-type PixelFormat = Options<'uint8'>['pixelFormat'];
+import { createSkiaImageFromData } from './SkiaUtils'
 
-const WIDTH = 480;
-const HEIGHT = 640;
-const TARGET_TYPE = 'uint8' as const;
-const TARGET_FORMAT: PixelFormat = 'rgba';
+type PixelFormat = Options<'uint8'>['pixelFormat']
+
+const WIDTH = 480
+const HEIGHT = 640
+const TARGET_TYPE = 'uint8' as const
+const TARGET_FORMAT: PixelFormat = 'rgba'
+
+function getRotation(orientation: Orientation): Options<'uint8'>['rotation'] {
+  switch (orientation) {
+    case 'up':
+      return '0deg'
+    case 'right':
+      return '90deg'
+    case 'down':
+      return '180deg'
+    case 'left':
+      return '270deg'
+  }
+}
 
 export default function App() {
-  const permission = useCameraPermission();
-  const device = useCameraDevice('back');
-  const previewImage = useSharedValue<SkImage | null>(null);
+  const permission = useCameraPermission()
+  const device = useCameraDevice('back')
+  const previewImage = useSharedValue<SkImage | null>(null)
 
   React.useEffect(() => {
-    permission.requestPermission();
-  }, [permission]);
+    permission.requestPermission()
+  }, [permission])
 
-  const plugin = useResizePlugin();
-
-  const updatePreviewImageFromData = useRunOnJS(
-    (data: SkData, pixelFormat: PixelFormat) => {
-      const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
-      previewImage.value?.dispose();
-      previewImage.value = image;
-      data.dispose();
+  const updatePreviewImage = React.useCallback(
+    (buffer: ArrayBufferLike, pixelFormat: PixelFormat) => {
+      const data = Skia.Data.fromBytes(new Uint8Array(buffer))
+      const image = createSkiaImageFromData(data as SkData, WIDTH, HEIGHT, pixelFormat)
+      previewImage.value?.dispose()
+      previewImage.value = image
+      data.dispose()
     },
-    []
-  );
+    [previewImage]
+  )
 
-  const frameProcessor = useFrameProcessor(
-    (frame) => {
-      'worklet';
+  const frameOutput = useFrameOutput({
+    pixelFormat: 'yuv',
+    onFrame(frame) {
+      'worklet'
 
-      const start = performance.now();
+      const start = performance.now()
 
-      const result = plugin.resize(frame, {
-        scale: {
-          width: WIDTH,
-          height: HEIGHT,
-        },
-        dataType: TARGET_TYPE,
-        pixelFormat: TARGET_FORMAT,
-        rotation: '90deg',
-        mirror: true,
-      });
+      try {
+        const result = VisionCameraResizePlugin.resize(frame, {
+          scale: {
+            width: WIDTH,
+            height: HEIGHT,
+          },
+          dataType: TARGET_TYPE,
+          pixelFormat: TARGET_FORMAT,
+          rotation: getRotation(frame.orientation),
+          mirror: frame.isMirrored,
+        })
 
-      const data = Skia.Data.fromBytes(result);
-      updatePreviewImageFromData(data, TARGET_FORMAT);
-      const end = performance.now();
+        runOnJS(updatePreviewImage)(result.buffer, TARGET_FORMAT)
 
-      console.log(
-        `Resized ${frame.width}x${frame.height} into 100x100 frame (${
-          result.length
-        }) in ${(end - start).toFixed(2)}ms`
-      );
+        const end = performance.now()
+        console.log(
+          `Resized ${frame.width}x${frame.height} into ${WIDTH}x${HEIGHT} frame (${result.length}) in ${(end - start).toFixed(2)}ms`
+        )
+      } finally {
+        frame.dispose()
+      }
     },
-    [updatePreviewImageFromData]
-  );
+  })
 
   return (
     <View style={styles.container}>
       {permission.hasPermission && device != null && (
         <Camera
           device={device}
-          enableFpsGraph
           style={StyleSheet.absoluteFill}
           isActive={true}
-          pixelFormat="yuv"
-          frameProcessor={frameProcessor}
+          outputs={[frameOutput]}
         />
       )}
       <View style={styles.canvasWrapper}>
@@ -101,7 +111,7 @@ export default function App() {
         </Canvas>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -110,14 +120,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
-  },
   canvasWrapper: {
     position: 'absolute',
     bottom: 80,
     left: 20,
   },
-});
+})
