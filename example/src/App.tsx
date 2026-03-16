@@ -20,8 +20,8 @@ import { createSkiaImageFromData } from './SkiaUtils';
 
 type PixelFormat = Options<'uint8'>['pixelFormat'];
 
-const WIDTH = 480;
-const HEIGHT = 640;
+const WIDTH = 300;
+const HEIGHT = 300;
 const TARGET_TYPE = 'uint8' as const;
 const TARGET_FORMAT: PixelFormat = 'rgba';
 
@@ -39,6 +39,10 @@ export default function App() {
   const updatePreviewImageFromData = useRunOnJS(
     (data: SkData, pixelFormat: PixelFormat) => {
       const image = createSkiaImageFromData(data, WIDTH, HEIGHT, pixelFormat);
+      if (image == null) {
+        data.dispose();
+        return;
+      }
       previewImage.value?.dispose();
       previewImage.value = image;
       data.dispose();
@@ -68,7 +72,7 @@ export default function App() {
       const end = performance.now();
 
       console.log(
-        `Resized ${frame.width}x${frame.height} into 100x100 frame (${
+        `Resized ${frame.width}x${frame.height} into ${WIDTH}x${HEIGHT} frame (${
           result.length
         }) in ${(end - start).toFixed(2)}ms`
       );
@@ -119,5 +123,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     left: 20,
+    borderColor: '#F00',
+    borderWidth: 2,
   },
 });

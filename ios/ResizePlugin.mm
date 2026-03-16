@@ -289,7 +289,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   return _argbBuffer;
 }
 
-- (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer crop:(CGRect)crop scale:(CGSize)scale {
+- (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer crop:(CGRect)crop scale:(CGSize)scale preserveAspectRatio:(BOOL)preserveAspectRatio {
   CGFloat cropWidth = crop.size.width;
   CGFloat cropHeight = crop.size.height;
   CGFloat cropX = crop.origin.x;
@@ -327,20 +327,44 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     }
   }
 
-  // Crop
-  vImage_Buffer cropped = (vImage_Buffer){.data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
-                                          .height = (unsigned long)cropHeight,
-                                          .width = (unsigned long)cropWidth,
-                                          .rowBytes = source->rowBytes};
-  source = &cropped;
-
-  // Resize
-  vImage_Error error = vImageScale_ARGB8888(source, destination, _tempResizeBuffer, kvImageNoFlags);
-  if (error != kvImageNoError) {
-    [[unlikely]];
-    @throw [NSException exceptionWithName:@"Resize Error"
-                                   reason:[NSString stringWithFormat:@"Failed to resize ARGB buffer! Error: %zu", error]
-                                 userInfo:nil];
+  
+  if (!preserveAspectRatio) {
+    // Crop
+    vImage_Buffer cropped = (vImage_Buffer){.data = AdvancePtr(source->data, cropY * source->rowBytes + cropX * buffer.bytesPerPixel),
+        .height = (unsigned long)cropHeight,
+        .width = (unsigned long)cropWidth,
+      .rowBytes = source->rowBytes};
+    source = &cropped;
+    
+    // Resize
+    vImage_Error error = vImageScale_ARGB8888(source, destination, _tempResizeBuffer, kvImageNoFlags);
+    if (error != kvImageNoError) {
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Resize Error"
+                                     reason:[NSString stringWithFormat:@"Failed to resize ARGB buffer! Error: %zu", error]
+                                   userInfo:nil];
+    }
+  }
+  else {
+    // Transform and pad
+    CGFloat scaleFactor = MIN(scale.width / buffer.width, scale.height / buffer.height);
+    CGAffineTransform cgTransform = CGAffineTransformIdentity;
+    cgTransform = CGAffineTransformScale(cgTransform, scaleFactor, scaleFactor);
+    vImage_AffineTransform vTransform = vImage_AffineTransform();
+    vTransform.a = cgTransform.a;
+    vTransform.b = cgTransform.b;
+    vTransform.c = cgTransform.c;
+    vTransform.d = cgTransform.d;
+    vTransform.tx = cgTransform.tx;
+    vTransform.ty = cgTransform.ty;
+    const Pixel_8888 backgroundColor = {255, 0, 0, 0};
+    vImage_Error error = vImageAffineWarp_ARGB8888(source, destination, nil, &vTransform, backgroundColor, kvImageBackgroundColorFill);
+    if (error != kvImageNoError) {
+      [[unlikely]];
+      @throw [NSException exceptionWithName:@"Resize Error"
+                                     reason:[NSString stringWithFormat:@"Failed to resize ARGB buffer! Error: %zu", error]
+                                   userInfo:nil];
+    }
   }
 
   return _resizeBuffer;
@@ -520,6 +544,13 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
     mirror = [mirrorParam boolValue];
   }
   NSLog(@"ResizePlugin: Mirror: %@", mirror ? @"YES" : @"NO");
+  
+  NSNumber* preserveAspectRatioParam = arguments[@"preserveAspectRatio"];
+  BOOL preserveAspectRatio = NO;
+  if (preserveAspectRatioParam != nil) {
+    preserveAspectRatio = [preserveAspectRatioParam boolValue];
+  }
+  NSLog(@"ResizePlugin: Preserve Aspect Ratio: %@", preserveAspectRatio ? @"YES" : @"NO");
 
   double cropWidth = (double)frame.width;
   double cropHeight = (double)frame.height;
@@ -592,7 +623,7 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
   // 3. Resize
   CGRect cropRect = CGRectMake(cropX, cropY, cropWidth, cropHeight);
   CGSize scaleSize = CGSizeMake(scaleWidth, scaleHeight);
-  result = [self resizeARGB:result crop:cropRect scale:scaleSize];
+  result = [self resizeARGB:result crop:cropRect scale:scaleSize preserveAspectRatio:preserveAspectRatio];
 
   // 4. Rotate
   result = [self rotateARGBBuffer:result rotation:rotation];
