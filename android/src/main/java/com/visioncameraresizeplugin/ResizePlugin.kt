@@ -171,6 +171,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
     return getSharedArray(resized)
   }
 
+  @Synchronized
   private fun getSharedArray(buffer: ByteBuffer): SharedArray {
     sharedArrays[buffer]?.let { return it }
 
