@@ -81,6 +81,10 @@ export interface ResizePlugin {
   /**
    * Resizes the given Frame to the target width/height and
    * convert it to the given pixel format.
+   *
+   * The returned typed array can be backed by reusable native memory. Read it
+   * during the current Frame Processor call, or copy it before retaining it
+   * across later `resize(...)` calls.
    */
   resize<T extends DataType>(frame: Frame, options: Options<T>): OutputArray<T>;
 }
