@@ -139,6 +139,7 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-android:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 
   // VisionCamera (FrameProcessorPlugin)
   api project(":react-native-vision-camera")

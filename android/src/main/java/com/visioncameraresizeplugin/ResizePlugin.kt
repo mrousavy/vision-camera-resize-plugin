@@ -12,8 +12,6 @@ import com.mrousavy.camera.frameprocessors.FrameProcessorPlugin
 import com.mrousavy.camera.frameprocessors.SharedArray
 import com.mrousavy.camera.frameprocessors.VisionCameraProxy
 import java.nio.ByteBuffer
-import java.util.ArrayDeque
-import java.util.IdentityHashMap
 
 @Suppress("KotlinJniMissingFunction") // We're using fbjni
 class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin() {
@@ -21,8 +19,9 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
   @Keep
   private val mHybridData: HybridData
   // SharedArray owns JNI global refs, so cache one wrapper per reusable native buffer.
-  private val sharedArrays = IdentityHashMap<ByteBuffer, SharedArray>()
-  private val sharedArrayOrder = ArrayDeque<ByteBuffer>()
+  private val sharedArrays = SharedArrayCache<ByteBuffer, SharedArray>(MAX_SHARED_ARRAY_CACHE_SIZE) { buffer ->
+    SharedArray(proxy, buffer)
+  }
 
   companion object {
     private const val TAG = "ResizePlugin"
@@ -173,16 +172,7 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
 
   @Synchronized
   private fun getSharedArray(buffer: ByteBuffer): SharedArray {
-    sharedArrays[buffer]?.let { return it }
-
-    while (sharedArrayOrder.size >= MAX_SHARED_ARRAY_CACHE_SIZE) {
-      sharedArrays.remove(sharedArrayOrder.removeFirst())
-    }
-
-    return SharedArray(proxy, buffer).also { sharedArray ->
-      sharedArrays[buffer] = sharedArray
-      sharedArrayOrder.addLast(buffer)
-    }
+    return sharedArrays.getOrCreate(buffer)
   }
 
   private enum class PixelFormat {
