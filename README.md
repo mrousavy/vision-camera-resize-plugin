@@ -38,6 +38,10 @@ const frameProcessor = useFrameProcessor((frame) => {
 }, [])
 ```
 
+The returned `Uint8Array`/`Float32Array` is backed by the plugin's reusable native
+buffer. Read it inside the current frame processor call, or copy it if you need
+to keep the data after the next `resize(...)` call.
+
 Or outside of a function component:
 
 ```tsx

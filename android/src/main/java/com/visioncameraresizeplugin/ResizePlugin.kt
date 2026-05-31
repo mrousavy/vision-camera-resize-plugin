@@ -18,9 +18,14 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
   @DoNotStrip
   @Keep
   private val mHybridData: HybridData
+  // SharedArray owns JNI global refs, so cache one wrapper per reusable native buffer.
+  private val sharedArrays = SharedArrayCache<ByteBuffer, SharedArray>(MAX_SHARED_ARRAY_CACHE_SIZE) { buffer ->
+    SharedArray(proxy, buffer)
+  }
 
   companion object {
     private const val TAG = "ResizePlugin"
+    private const val MAX_SHARED_ARRAY_CACHE_SIZE = 8
 
     init {
       System.loadLibrary("VisionCameraResizePlugin")
@@ -162,7 +167,12 @@ class ResizePlugin(private val proxy: VisionCameraProxy) : FrameProcessorPlugin(
       targetType.ordinal
     )
 
-    return SharedArray(proxy, resized)
+    return getSharedArray(resized)
+  }
+
+  @Synchronized
+  private fun getSharedArray(buffer: ByteBuffer): SharedArray {
+    return sharedArrays.getOrCreate(buffer)
   }
 
   private enum class PixelFormat {
