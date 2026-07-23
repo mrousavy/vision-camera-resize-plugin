@@ -290,10 +290,13 @@ vImage_YpCbCrPixelRange getRange(FourCharCode pixelFormat) {
 }
 
 - (FrameBuffer*)resizeARGB:(FrameBuffer*)buffer crop:(CGRect)crop scale:(CGSize)scale {
-  CGFloat cropWidth = crop.size.width;
-  CGFloat cropHeight = crop.size.height;
-  CGFloat cropX = crop.origin.x;
-  CGFloat cropY = crop.origin.y;
+  // vImage crop dimensions and byte offsets are integral. Convert each component
+  // before calculating the pointer so a fractional cropY cannot become an
+  // unintended horizontal byte offset.
+  size_t cropWidth = static_cast<size_t>(crop.size.width);
+  size_t cropHeight = static_cast<size_t>(crop.size.height);
+  size_t cropX = static_cast<size_t>(crop.origin.x);
+  size_t cropY = static_cast<size_t>(crop.origin.y);
 
   CGFloat scaleWidth = scale.width;
   CGFloat scaleHeight = scale.height;
